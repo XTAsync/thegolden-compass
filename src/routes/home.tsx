@@ -1,22 +1,23 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { Sparkline } from "@/components/Sparkline";
-import { TiltCard } from "@/components/TiltCard";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useAccountSummary } from "@/hooks/useAccountSummary";
 import { NotificationBell } from "@/components/NotificationBell";
-import { WithdrawModal } from "@/components/WithdrawModal";
-import { WalletDepositModal } from "@/components/WalletDepositModal";
+import { Sparkline } from "@/components/Sparkline";
+import { CompassEmblem } from "@/components/CompassEmblem";
+import { useQuotes } from "@/lib/quote-client";
+import { symbolsByCategory } from "@/lib/symbols";
+import { MoreVertical, LifeBuoy, Megaphone, ArrowRight, Compass, Newspaper, Settings, LayoutGrid, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
-      { title: "Investor Dashboard — Golden Compass" },
-      { name: "description", content: "Track your portfolio value, holdings, wallet balance and recent performance on Golden Compass." },
+      { title: "Home — Golden Compass" },
+      { name: "description", content: "Your Golden Compass hub: what's new, GC AI guidance, market indexes and notices." },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Investor Dashboard — Golden Compass" },
-      { property: "og:description", content: "Track your portfolio value, holdings and wallet balance." },
+      { property: "og:title", content: "Home — Golden Compass" },
+      { property: "og:description", content: "What's new, GC AI and market movement in one place." },
       { property: "og:url", content: "/home" },
     ],
     links: [{ rel: "canonical", href: "/home" }],
@@ -24,277 +25,157 @@ export const Route = createFileRoute("/home")({
   component: HomePage,
 });
 
-interface InvestmentRow {
-  id: string;
-  pool_id: string;
-  invested_amount: number | null;
-  current_value: number | null;
-  units_owned: number | null;
-  investment_pools: {
-    name: string;
-    pool_type: string | null;
-    current_nav: number | null;
-    exit_fee_percent: number | null;
-    holding_period_days: number | null;
-  } | null;
-}
+const ANNOUNCEMENTS = [
+  { tag: "NEW", title: "Command Center", body: "One control panel for wallet, markets, tools and settings." },
+  { tag: "UPDATE", title: "Candlestick charts", body: "1D–1Y OHLC charts with volume on every asset page." },
+  { tag: "FEATURE", title: "Price alerts", body: "Get notified the moment a stock crosses your level." },
+];
 
-const KES = (n: number) =>
-  "KES " + n.toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const INDEXES = symbolsByCategory("index").slice(0, 6);
 
 function HomePage() {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [investments, setInvestments] = useState<InvestmentRow[]>([]);
-  const [fullName, setFullName] = useState("Investor");
-  const [withdrawTarget, setWithdrawTarget] = useState<InvestmentRow | null>(null);
-  const [reloadTick, setReloadTick] = useState(0);
-  const [showDeposit, setShowDeposit] = useState(false);
-  const [walletBal, setWalletBal] = useState(0);
+  const { user, loading, signOut } = useAuth();
+  const s = useAccountSummary();
+  const { notifications } = useNotifications();
+  const [menu, setMenu] = useState(false);
+  const { quotes } = useQuotes(INDEXES.map((e) => ({ symbol: e.symbol, exchange: e.exchange })), 60_000);
 
-  useEffect(() => {
-    if (!authLoading && !user) navigate({ to: "/login" });
-  }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const [{ data: invs }, { data: profile }] = await Promise.all([
-        supabase
-          .from("user_investments")
-          .select("id, pool_id, invested_amount, current_value, units_owned, investment_pools(name, pool_type, current_nav, exit_fee_percent, holding_period_days)")
-          .eq("user_id", user.id),
-        supabase.from("profiles").select("full_name, wallet_balance").eq("id", user.id).maybeSingle(),
-      ]);
-      if (cancelled) return;
-      setInvestments((invs as unknown as InvestmentRow[]) ?? []);
-      if (profile?.full_name) setFullName(profile.full_name.split(" ")[0]);
-      setWalletBal(Number(profile?.wallet_balance ?? 0));
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, reloadTick]);
-
-  const totalValue = investments.reduce((s, i) => s + Number(i.current_value ?? 0), 0);
-  const totalInvested = investments.reduce((s, i) => s + Number(i.invested_amount ?? 0), 0);
-  const gain = totalValue - totalInvested;
-  const gainPct = totalInvested > 0 ? (gain / totalInvested) * 100 : 0;
-
-  // Generate a sparkline trend toward current totalValue
-  const sparkData = (() => {
-    if (totalValue === 0) return Array.from({ length: 12 }, (_, i) => 100 + Math.sin(i / 2) * 5);
-    const start = totalInvested || totalValue * 0.95;
-    const arr: number[] = [];
-    for (let i = 0; i < 12; i++) {
-      const t = i / 11;
-      const noise = Math.sin(i * 1.7) * (totalValue * 0.015);
-      arr.push(start + (totalValue - start) * t + noise);
-    }
-    return arr;
-  })();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" />;
 
   return (
-    <div className="flex flex-col gap-5 px-5 pt-6 pb-28 anim-fade-up">
-      {/* Greeting */}
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.18em" }}>
-            WELCOME ABOARD
-          </p>
-          <h1 className="t-display t-gold mt-1" style={{ fontSize: 22 }}>
-            <span className="sr-only">Investor Dashboard — </span>{fullName}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <Link
-            to="/profile"
-            className="glass w-11 h-11 rounded-full flex items-center justify-center t-gold"
-            style={{ fontFamily: "var(--font-display)", fontSize: 14 }}
-          >
-            {fullName.charAt(0).toUpperCase()}
-          </Link>
-        </div>
+    <div className="flex flex-col gap-4 px-5 pt-6 pb-28 anim-fade-up">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <h1 className="t-display t-gold truncate" style={{ fontSize: 24, letterSpacing: "0.03em" }}>
+          WELCOME, {s.firstName.toUpperCase()}!
+        </h1>
+        <NotificationBell />
       </header>
+      <p className="t-fell t-sec -mt-2" style={{ fontSize: 14 }}>Navigate your wealth</p>
 
-      {/* Portfolio hero */}
-      <TiltCard className="glass-gold rounded-2xl p-6">
-        <div className="relative z-10">
-          <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.18em" }}>
-            TOTAL PORTFOLIO VALUE
-          </p>
-          {loading ? (
-            <div className="skeleton h-10 w-48 mt-3" />
-          ) : (
-            <h2
-              className="t-display t-parch mt-2"
-              style={{ fontSize: 34, letterSpacing: "0.02em" }}
-            >
-              <AnimatedNumber value={totalValue} format={KES} />
-            </h2>
-          )}
-
-          <div className="mt-3 flex items-center gap-3">
-            {loading ? (
-              <div className="skeleton h-4 w-24" />
-            ) : (
-              <span
-                className={gain >= 0 ? "t-success" : "t-danger"}
-                style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}
-              >
-                {gain >= 0 ? "▲" : "▼"} {KES(Math.abs(gain))}{" "}
-                ({gainPct >= 0 ? "+" : ""}
-                {gainPct.toFixed(2)}%)
-              </span>
-            )}
-            <span className="t-mono t-muted" style={{ fontSize: 9 }}>
-              ALL TIME
-            </span>
-          </div>
-
-          <div className="mt-5">
-            {loading ? (
-              <div className="skeleton h-[60px] w-full" />
-            ) : (
-              <Sparkline data={sparkData} />
-            )}
-          </div>
-
-          <div className="mt-4 glass rounded-lg p-3 flex items-center justify-between">
-            <div>
-              <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.14em" }}>WALLET</p>
-              <p className="t-display t-gold mt-1" style={{ fontSize: 16 }}>{KES(walletBal)}</p>
-            </div>
-            <button
-              onClick={() => setShowDeposit(true)}
-              className="btn-brass"
-              style={{ padding: "10px 14px", fontSize: 10 }}
-              aria-label="Deposit funds into wallet"
-            >
-              + DEPOSIT
+      {/* Continue as + Help */}
+      <div className="grid grid-cols-[minmax(0,1fr)_88px] gap-3">
+        <div className="glass-gold rounded-[20px] p-4 relative">
+          <div className="relative z-10 flex items-center justify-between">
+            <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.16em" }}>CONTINUE AS</p>
+            <button aria-label="Account menu" onClick={() => setMenu((v) => !v)} className="t-gold bg-transparent border-none cursor-pointer p-1 -m-1">
+              <MoreVertical size={16} />
             </button>
           </div>
-
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <Link to="/pools" className="btn-brass" style={{ padding: "12px 10px", fontSize: 11 }}>
-              Invest
-            </Link>
-            <Link to="/trade" className="btn-brass" style={{ padding: "12px 10px", fontSize: 11 }}>
-              Trade
-            </Link>
-            <Link
-              to="/history"
-              className="glass rounded-[10px] flex items-center justify-center t-gold"
-              style={{ fontFamily: "var(--font-display)", letterSpacing: "0.08em", fontSize: 11, padding: "12px 10px" }}
-            >
-              HISTORY
-            </Link>
-          </div>
-
+          {menu && (
+            <div className="absolute z-20 right-3 top-9 rounded-xl overflow-hidden" style={{ background: "var(--ocean-2)", border: "1px solid rgba(201,168,76,0.25)", minWidth: 160 }}>
+              {[
+                { to: "/account", Icon: Settings, label: "Account Centre" },
+                { to: "/quick", Icon: LayoutGrid, label: "Quick Access" },
+              ].map(({ to, Icon, label }) => (
+                <Link key={label} to={to} className="flex items-center gap-2 px-4 py-3 t-serif t-parch" style={{ fontSize: 13, textDecoration: "none" }}>
+                  <Icon size={14} className="t-gold" /> {label}
+                </Link>
+              ))}
+              <button onClick={() => signOut()} className="w-full flex items-center gap-2 px-4 py-3 bg-transparent border-none cursor-pointer t-serif" style={{ fontSize: 13, color: "var(--gc-danger)" }}>
+                <LogOut size={14} /> Sign out
+              </button>
+            </div>
+          )}
+          <Link to="/command" className="relative z-10 mt-3 flex items-center gap-3" style={{ textDecoration: "none" }}>
+            <span className="w-12 h-12 rounded-full flex items-center justify-center t-display t-gold shrink-0" style={{ fontSize: 18, border: "1px solid rgba(201,168,76,0.45)", background: "radial-gradient(circle at 30% 30%, rgba(201,168,76,0.3), transparent 70%)" }}>
+              {s.firstName.charAt(0).toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="t-display t-parch block truncate" style={{ fontSize: 14 }}>{s.fullName}</span>
+              <span className="t-mono t-muted block truncate" style={{ fontSize: 9 }}>Investor · {s.kycStatus === "approved" ? "Verified" : "Unverified"}</span>
+            </span>
+            <ArrowRight size={18} className="t-gold shrink-0" />
+          </Link>
         </div>
-      </TiltCard>
+        <Link to="/guides/dividend-tracking" className="glass rounded-[20px] flex flex-col items-center justify-center gap-2 text-center" style={{ textDecoration: "none" }}>
+          <LifeBuoy size={22} className="t-gold" strokeWidth={1.6} />
+          <span className="t-mono t-parch" style={{ fontSize: 9, letterSpacing: "0.08em", lineHeight: 1.4 }}>ACC HELP<br />CENTRE</span>
+        </Link>
+      </div>
 
-      {/* Holdings */}
-      <section>
-        <h2 className="t-display t-gold mb-3" style={{ fontSize: 14, letterSpacing: "0.06em" }}>
-          Your Holdings
-        </h2>
-        {loading ? (
-          <div className="space-y-3">
-            <div className="skeleton h-20 w-full rounded-xl" />
-            <div className="skeleton h-20 w-full rounded-xl" />
-          </div>
-        ) : investments.length === 0 ? (
-          <div className="glass rounded-xl p-6 text-center">
-            <p className="t-serif t-parch" style={{ fontSize: 15 }}>
-              Your voyage has not yet begun.
-            </p>
-            <p className="t-mono t-muted mt-2" style={{ fontSize: 10 }}>
-              Choose a pool to set sail.
-            </p>
-            <Link
-              to="/pools"
-              className="btn-brass mt-4 inline-flex"
-              style={{ padding: "10px 18px", fontSize: 10 }}
-            >
-              Explore Pools
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {investments.map((inv) => {
-              const value = Number(inv.current_value ?? 0);
-              const invested = Number(inv.invested_amount ?? 0);
-              const change = value - invested;
-              const changePct = invested > 0 ? (change / invested) * 100 : 0;
-              return (
-                <div key={inv.id} className="glass rounded-xl p-4 relative z-0">
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <p className="t-display t-parch" style={{ fontSize: 14 }}>
-                        {inv.investment_pools?.name ?? "Pool"}
-                      </p>
-                      <p className="t-mono t-sec mt-1" style={{ fontSize: 9, letterSpacing: "0.14em" }}>
-                        {(inv.investment_pools?.pool_type ?? "").toUpperCase()} ·{" "}
-                        {Number(inv.units_owned ?? 0).toFixed(4)} UNITS
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="t-serif t-gold" style={{ fontSize: 15 }}>
-                        {KES(value)}
-                      </p>
-                      <p
-                        className={change >= 0 ? "t-success" : "t-danger"}
-                        style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-                      >
-                        {change >= 0 ? "+" : ""}
-                        {changePct.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                  {value > 0 && (
-                    <button
-                      onClick={() => setWithdrawTarget(inv)}
-                      className="mt-3 w-full glass rounded-lg t-gold"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        letterSpacing: "0.08em",
-                        fontSize: 10,
-                        padding: "8px 12px",
-                      }}
-                    >
-                      WITHDRAW
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* App Centre */}
+      <section className="glass rounded-[20px] p-4">
+        <div className="flex items-center gap-2">
+          <Megaphone size={15} className="t-gold" />
+          <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.16em" }}>APP CENTRE · BRAND NEWS</p>
+        </div>
+        <h2 className="t-display t-parch mt-2" style={{ fontSize: 16 }}>What's New in Golden Compass</h2>
+        <div className="mt-3 flex gap-3 overflow-x-auto -mx-4 px-4 pb-1" style={{ scrollSnapType: "x mandatory" }}>
+          {ANNOUNCEMENTS.map((a) => (
+            <div key={a.title} className="glass rounded-xl p-3 shrink-0" style={{ width: 200, scrollSnapAlign: "start" }}>
+              <span className="t-mono t-gold" style={{ fontSize: 8, letterSpacing: "0.16em" }}>{a.tag}</span>
+              <p className="t-serif t-parch mt-1" style={{ fontSize: 14 }}>{a.title}</p>
+              <p className="t-mono t-muted mt-1" style={{ fontSize: 9, lineHeight: 1.5 }}>{a.body}</p>
+            </div>
+          ))}
+        </div>
       </section>
-      {withdrawTarget && (
-        <WithdrawModal
-          holding={{
-            pool_id: withdrawTarget.pool_id,
-            pool_name: withdrawTarget.investment_pools?.name ?? "Pool",
-            current_value: Number(withdrawTarget.current_value ?? 0),
-            exit_fee_percent: Number(withdrawTarget.investment_pools?.exit_fee_percent ?? 0),
-            holding_period_days: Number(withdrawTarget.investment_pools?.holding_period_days ?? 0),
-          }}
-          onClose={() => setWithdrawTarget(null)}
-          onSuccess={() => setReloadTick((t) => t + 1)}
-        />
-      )}
-      {showDeposit && (
-        <WalletDepositModal
-          onClose={() => setShowDeposit(false)}
-          onSuccess={() => setReloadTick((t) => t + 1)}
-        />
-      )}
+
+      {/* GC AI */}
+      <Link to="/navigator" className="glass-gold rounded-[20px] p-5 flex items-center gap-4" style={{ textDecoration: "none" }}>
+        <span className="relative z-10 shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{ color: "var(--gold-200)", border: "1px solid rgba(201,168,76,0.4)", background: "linear-gradient(150deg, rgba(201,168,76,0.25), rgba(42,191,191,0.08))" }}>
+          <Compass size={28} strokeWidth={1.5} />
+        </span>
+        <span className="relative z-10 min-w-0 flex-1">
+          <span className="t-fell t-sec block" style={{ fontSize: 13 }}>Want to know more?</span>
+          <span className="t-display t-gold block" style={{ fontSize: 22 }}>GC AI</span>
+          <span className="t-mono t-muted block" style={{ fontSize: 9 }}>Ask your navigator about your portfolio & markets</span>
+        </span>
+        <ArrowRight size={20} className="relative z-10 t-gold shrink-0" />
+      </Link>
+
+      {/* Market Index */}
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="t-display t-gold" style={{ fontSize: 14, letterSpacing: "0.06em" }}>Market Index</h2>
+          <Link to="/markets" className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.12em", textDecoration: "none" }}>MARKET VIEW ›</Link>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {INDEXES.map((e) => {
+            const st = quotes[e.symbol.toUpperCase()];
+            const q = st?.quote;
+            const up = (q?.change_pct ?? 0) >= 0;
+            const color = up ? "var(--gc-success)" : "var(--gc-danger)";
+            return (
+              <Link key={e.symbol} to="/stock/$symbol" params={{ symbol: e.symbol }} search={{ exchange: e.exchange }} className="glass rounded-xl p-3" style={{ textDecoration: "none" }}>
+                <div className="flex items-center justify-between">
+                  <span className="t-display t-parch" style={{ fontSize: 12 }}>{e.symbol}</span>
+                  <span className="t-mono" style={{ fontSize: 10, color }}>{q ? `${up ? "+" : ""}${q.change_pct.toFixed(2)}%` : "…"}</span>
+                </div>
+                <div style={{ height: 24, marginTop: 6 }}>
+                  {st && st.history.length > 1 ? <Sparkline data={st.history} width={130} height={24} color={up ? "rgb(120,200,140)" : "rgb(220,120,120)"} /> : <div className="skeleton w-full h-full rounded" />}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* News / notices */}
+      <section>
+        <div className="flex items-center gap-2 mb-2">
+          <Newspaper size={15} className="t-gold" />
+          <h2 className="t-display t-gold" style={{ fontSize: 14, letterSpacing: "0.06em" }}>News & Notices</h2>
+        </div>
+        <div className="flex flex-col gap-2">
+          {notifications.slice(0, 5).map((n) => (
+            <div key={n.id} className="glass rounded-xl p-4">
+              <p className="t-serif t-parch" style={{ fontSize: 14 }}>{n.title}</p>
+              {n.body && <p className="t-mono t-muted mt-1" style={{ fontSize: 10, lineHeight: 1.5 }}>{n.body}</p>}
+              <p className="t-mono t-sec mt-1" style={{ fontSize: 8 }}>{new Date(n.created_at).toLocaleDateString("en-KE")}</p>
+            </div>
+          ))}
+          <Link to="/pools" className="rounded-xl p-4 flex items-center gap-3" style={{ textDecoration: "none", border: "1px dashed rgba(201,168,76,0.35)", background: "rgba(201,168,76,0.05)" }}>
+            <CompassEmblem size={34} />
+            <span className="min-w-0 flex-1">
+              <span className="t-mono t-gold block" style={{ fontSize: 8, letterSpacing: "0.16em" }}>FEATURED</span>
+              <span className="t-serif t-parch block" style={{ fontSize: 14 }}>Start a pool from KES 5</span>
+            </span>
+            <ArrowRight size={16} className="t-gold" />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { Route as TradeRouteImport } from './routes/trade'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as QuickRouteImport } from './routes/quick'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PoolsRouteImport } from './routes/pools'
@@ -28,6 +29,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CommandRouteImport } from './routes/command'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StockSymbolRouteImport } from './routes/stock.$symbol'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
@@ -71,6 +73,11 @@ const SignupRoute = SignupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuickRoute = QuickRouteImport.update({
+  id: '/quick',
+  path: '/quick',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -146,6 +153,11 @@ const CommandRoute = CommandRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -275,6 +287,7 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/command': typeof CommandRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -290,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/pools': typeof PoolsRoute
   '/portfolio': typeof PortfolioRoute
   '/profile': typeof ProfileRoute
+  '/quick': typeof QuickRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -320,6 +334,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/command': typeof CommandRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -335,6 +350,7 @@ export interface FileRoutesByTo {
   '/pools': typeof PoolsRoute
   '/portfolio': typeof PortfolioRoute
   '/profile': typeof ProfileRoute
+  '/quick': typeof QuickRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -366,6 +382,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/command': typeof CommandRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -381,6 +398,7 @@ export interface FileRoutesById {
   '/pools': typeof PoolsRoute
   '/portfolio': typeof PortfolioRoute
   '/profile': typeof ProfileRoute
+  '/quick': typeof QuickRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -413,6 +431,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/admin'
     | '/command'
     | '/forgot-password'
@@ -428,6 +447,7 @@ export interface FileRouteTypes {
     | '/pools'
     | '/portfolio'
     | '/profile'
+    | '/quick'
     | '/reset-password'
     | '/signup'
     | '/sitemap.xml'
@@ -458,6 +478,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/admin'
     | '/command'
     | '/forgot-password'
@@ -473,6 +494,7 @@ export interface FileRouteTypes {
     | '/pools'
     | '/portfolio'
     | '/profile'
+    | '/quick'
     | '/reset-password'
     | '/signup'
     | '/sitemap.xml'
@@ -503,6 +525,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/admin'
     | '/command'
     | '/forgot-password'
@@ -518,6 +541,7 @@ export interface FileRouteTypes {
     | '/pools'
     | '/portfolio'
     | '/profile'
+    | '/quick'
     | '/reset-password'
     | '/signup'
     | '/sitemap.xml'
@@ -549,6 +573,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRouteWithChildren
   CommandRoute: typeof CommandRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -564,6 +589,7 @@ export interface RootRouteChildren {
   PoolsRoute: typeof PoolsRoute
   PortfolioRoute: typeof PortfolioRoute
   ProfileRoute: typeof ProfileRoute
+  QuickRoute: typeof QuickRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -619,6 +645,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quick': {
+      id: '/quick'
+      path: '/quick'
+      fullPath: '/quick'
+      preLoaderRoute: typeof QuickRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -724,6 +757,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -911,6 +951,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   AdminRoute: AdminRouteWithChildren,
   CommandRoute: CommandRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
@@ -926,6 +967,7 @@ const rootRouteChildren: RootRouteChildren = {
   PoolsRoute: PoolsRoute,
   PortfolioRoute: PortfolioRoute,
   ProfileRoute: ProfileRoute,
+  QuickRoute: QuickRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

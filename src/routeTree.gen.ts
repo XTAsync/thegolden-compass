@@ -36,6 +36,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminTransactionsRouteImport } from './routes/admin.transactions'
 import { Route as ApiCandlesRouteImport } from './routes/api/candles'
+import { Route as ApiCapabilitiesRouteImport } from './routes/api/capabilities'
 import { Route as ApiFeesRouteImport } from './routes/api/fees'
 import { Route as ApiMpesaB2cResultRouteImport } from './routes/api/mpesa-b2c-result'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api/mpesa-callback'
@@ -192,6 +193,11 @@ const ApiCandlesRoute = ApiCandlesRouteImport.update({
   path: '/api/candles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCapabilitiesRoute = ApiCapabilitiesRouteImport.update({
+  id: '/api/capabilities',
+  path: '/api/capabilities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFeesRoute = ApiFeesRouteImport.update({
   id: '/api/fees',
   path: '/api/fees',
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/api/candles': typeof ApiCandlesRoute
+  '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/api/candles': typeof ApiCandlesRoute
+  '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -408,6 +416,7 @@ export interface FileRoutesById {
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/api/candles': typeof ApiCandlesRoute
+  '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -457,6 +466,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/transactions'
     | '/api/candles'
+    | '/api/capabilities'
     | '/api/fees'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-callback'
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/transactions'
     | '/api/candles'
+    | '/api/capabilities'
     | '/api/fees'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-callback'
@@ -551,6 +562,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/transactions'
     | '/api/candles'
+    | '/api/capabilities'
     | '/api/fees'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-callback'
@@ -597,6 +609,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiCandlesRoute: typeof ApiCandlesRoute
+  ApiCapabilitiesRoute: typeof ApiCapabilitiesRoute
   ApiFeesRoute: typeof ApiFeesRoute
   ApiMpesaB2cResultRoute: typeof ApiMpesaB2cResultRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
@@ -808,6 +821,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCandlesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/capabilities': {
+      id: '/api/capabilities'
+      path: '/api/capabilities'
+      fullPath: '/api/capabilities'
+      preLoaderRoute: typeof ApiCapabilitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fees': {
       id: '/api/fees'
       path: '/api/fees'
@@ -976,6 +996,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiCandlesRoute: ApiCandlesRoute,
+  ApiCapabilitiesRoute: ApiCapabilitiesRoute,
   ApiFeesRoute: ApiFeesRoute,
   ApiMpesaB2cResultRoute: ApiMpesaB2cResultRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,

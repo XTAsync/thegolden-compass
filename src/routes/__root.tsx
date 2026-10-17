@@ -6,6 +6,9 @@ import { ParallaxBackground } from "@/components/ParallaxBackground";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingSplash } from "@/components/LoadingSplash";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
+import { DisclosureBlock, ModeBanner } from "@/features/settings/DisclosureBlock";
 
 import appCss from "../styles.css?url";
 
@@ -16,9 +19,9 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center px-4" style={{ background: "var(--ocean-0)" }}>
       <div className="max-w-md text-center">
         <h1 className="t-display t-gold" style={{ fontSize: 48 }}>404</h1>
-        <h2 className="t-serif t-parch mt-4" style={{ fontSize: 18 }}>Lost at sea</h2>
+        <h2 className="t-serif t-parch mt-4" style={{ fontSize: 18 }}>Page not found</h2>
         <p className="t-mono t-muted mt-2" style={{ fontSize: 11 }}>
-          This route doesn't exist on our charts.
+          The requested page does not exist.
         </p>
         <div className="mt-6">
           <Link
@@ -26,7 +29,7 @@ function NotFoundComponent() {
             className="btn-brass inline-flex"
             style={{ padding: "10px 24px", fontSize: 11 }}
           >
-            ⚓ Return to Port
+            Return to sign in
           </Link>
         </div>
       </div>
@@ -38,18 +41,16 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
-      { title: "Golden Compass — Navigate Your Wealth" },
-      { name: "description", content: "Golden Compass investment platform. Navigate your wealth with AI-powered portfolio management." },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Golden Compass — Markets, Education & Demo Investing" },
+      { name: "description", content: "Explore markets, investment education and demo investing with Golden Compass." },
       { name: "author", content: "Golden Compass" },
       { property: "og:site_name", content: "Golden Compass" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "Golden Compass — Navigate Your Wealth" },
-      { name: "twitter:title", content: "Golden Compass — Navigate Your Wealth" },
-      { property: "og:description", content: "Golden Compass investment platform. Navigate your wealth with AI-powered portfolio management." },
-      { name: "twitter:description", content: "Golden Compass investment platform. Navigate your wealth with AI-powered portfolio management." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3768138a-5887-4cec-b4fd-d7616ea55383" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3768138a-5887-4cec-b4fd-d7616ea55383" },
+      { property: "og:title", content: "Golden Compass — Markets, Education & Demo Investing" },
+      { name: "twitter:title", content: "Golden Compass — Markets, Education & Demo Investing" },
+      { property: "og:description", content: "Market analysis and investing education for Kenya-focused retail investors." },
+      { name: "twitter:description", content: "Market analysis and investing education for Kenya-focused retail investors." },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -70,12 +71,12 @@ export const Route = createRootRoute({
             {
               "@type": "Organization",
               name: "Golden Compass",
-              description: "AI-powered investment platform helping Kenyan investors grow wealth through curated pools.",
+              description: "Market analysis and investing education for Kenya-focused retail investors.",
             },
             {
               "@type": "WebSite",
               name: "Golden Compass",
-              description: "Navigate your wealth with AI-powered portfolio management.",
+              description: "Market analysis, education and demo investing.",
             },
           ],
         }),
@@ -103,7 +104,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function AppShell() {
   const location = useLocation();
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, user } = useAuth();
   const isAuth = authRoutes.includes(location.pathname);
 
   if (authLoading && !isAuth) {
@@ -121,8 +122,10 @@ function AppShell() {
         className="relative z-10 mx-auto flex flex-col h-full"
         style={{ maxWidth: 430 }}
       >
+        {user && <ModeBanner />}
         <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
           <Outlet />
+          <DisclosureBlock />
         </div>
         <BottomNav />
       </div>
@@ -131,7 +134,9 @@ function AppShell() {
 }
 
 function RootComponent() {
+  const [queryClient] = useState(() => new QueryClient());
   return (
+    <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <NotificationsProvider>
         <ErrorBoundary>
@@ -140,5 +145,6 @@ function RootComponent() {
         <Toaster position="top-center" theme="dark" richColors />
       </NotificationsProvider>
     </AuthProvider>
+    </QueryClientProvider>
   );
 }

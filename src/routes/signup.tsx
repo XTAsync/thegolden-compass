@@ -8,7 +8,7 @@ export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
       { title: "Sign Up — Golden Compass" },
-      { name: "description", content: "Join the fleet. Create your Golden Compass account and start investing in curated pools." },
+      { name: "description", content: "Create your Golden Compass account for market analysis and investing education." },
       { property: "og:title", content: "Sign Up — Golden Compass" },
       { property: "og:description", content: "Create your Golden Compass investor account." },
       { property: "og:url", content: "/signup" },
@@ -38,7 +38,7 @@ function SignupPage() {
       return;
     }
     if (password.length < 6) {
-      setError("Passphrase must be at least 6 characters");
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -48,8 +48,8 @@ function SignupPage() {
       setSuccess(true);
       // Auto-confirm is enabled — user is signed in instantly. Go straight to home.
       setTimeout(() => navigate({ to: "/home" }), 800);
-    } catch (err: any) {
-      setError(err.message || "Registration failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Registration failed");
       setLoading(false);
     }
   };
@@ -69,13 +69,13 @@ function SignupPage() {
             className="t-display t-gold anim-fade-up mt-3"
             style={{ fontSize: 20, letterSpacing: "0.04em", animationDelay: "0.3s" }}
           >
-            Join the Fleet
+            Create account
           </h1>
           <p
             className="t-fell t-sec anim-fade-up"
             style={{ fontSize: 14, fontStyle: "italic", animationDelay: "0.4s" }}
           >
-            Request your boarding pass
+            Join Golden Compass
           </p>
         </div>
 
@@ -113,7 +113,7 @@ function SignupPage() {
                 />
               </div>
               <div className="gc-input-wrap mb-4">
-                <label className="gc-input-label">Passphrase</label>
+                <label className="gc-input-label">Password</label>
                 <input
                   type="password"
                   className="gc-input"
@@ -132,10 +132,10 @@ function SignupPage() {
               {success ? (
                 <div className="text-center py-4">
                   <p className="t-display t-gold" style={{ fontSize: 14 }}>
-                    ✓ Welcome aboard
+                    Account created
                   </p>
                   <p className="t-mono t-muted mt-2" style={{ fontSize: 10 }}>
-                    Setting your course...
+                    Opening your account…
                   </p>
                 </div>
               ) : (
@@ -158,7 +158,7 @@ function SignupPage() {
                       }}
                     />
                   ) : (
-                    <>⚓ Board the Ship</>
+                    <>Create account</>
                   )}
                 </button>
               )}
@@ -167,9 +167,9 @@ function SignupPage() {
 
           <div className="text-center mb-6">
             <p className="t-fell t-sec" style={{ fontSize: 13, fontStyle: "italic" }}>
-              Already aboard?{" "}
+              Already have an account?{" "}
               <Link to="/login" className="t-gold" style={{ textDecoration: "none" }}>
-                Navigate In →
+                Sign in →
               </Link>
             </p>
           </div>

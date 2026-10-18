@@ -7,10 +7,10 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/navigator")({
   head: () => ({
     meta: [
-      { title: "AI Navigator — Golden Compass" },
-      { name: "description", content: "Ask the Golden Compass AI Navigator about your portfolio, pools and investment strategy." },
+      { title: "Education Assistant — Golden Compass" },
+      { name: "description", content: "Golden Compass investing education assistant. No personal recommendations." },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "AI Navigator — Golden Compass" },
+      { property: "og:title", content: "Education Assistant — Golden Compass" },
       { property: "og:description", content: "Your conversational guide to portfolio insights and pool questions." },
       { property: "og:url", content: "/navigator" },
     ],
@@ -22,10 +22,10 @@ export const Route = createFileRoute("/navigator")({
 type Msg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = [
-  "How is my portfolio performing?",
-  "Explain the Treasury Vault pool",
-  "What's my current allocation?",
-  "Should I diversify more?",
+  "What does diversification mean?",
+  "What is a market order?",
+  "What is a candlestick chart?",
+  "What are trading fees?",
 ];
 
 function NavigatorPage() {
@@ -44,6 +44,10 @@ function NavigatorPage() {
 
   const send = async (text: string) => {
     if (!text.trim() || streaming) return;
+    // The legacy streaming endpoint has no verified output safety check.
+    // Keep it inaccessible here until the guarded education milestone replaces it.
+    toast.info("Education assistant is temporarily unavailable while safety checks are upgraded.");
+    return;
     const userMsg: Msg = { role: "user", content: text.trim() };
     const next = [...messages, userMsg];
     setMessages(next);
@@ -67,7 +71,7 @@ function NavigatorPage() {
       if (!resp.ok || !resp.body) {
         if (resp.status === 429) toast.error("Rate limit hit. Try again in a moment.");
         else if (resp.status === 402) toast.error("AI credits depleted.");
-        else toast.error("Navigator unavailable");
+        else toast.error("Education assistant unavailable");
         setStreaming(false);
         return;
       }
@@ -124,10 +128,10 @@ function NavigatorPage() {
           <span style={{ fontSize: 28 }}>🧭</span>
           <div>
             <h1 className="t-display t-gold" style={{ fontSize: 18 }}>
-              AI Navigator
+              Education Assistant
             </h1>
             <p className="t-mono t-muted" style={{ fontSize: 9, letterSpacing: "0.1em" }}>
-              YOUR PORTFOLIO GUIDE
+              INVESTING CONCEPTS ONLY
             </p>
           </div>
         </div>
@@ -137,7 +141,7 @@ function NavigatorPage() {
         {messages.length === 0 ? (
           <div className="text-center" style={{ paddingTop: 32 }}>
             <p className="t-serif t-parch" style={{ fontSize: 14, lineHeight: 1.5 }}>
-              Ahoy. Ask me anything about your investments, the available pools, or how this voyage works.
+              The education assistant is temporarily unavailable while safety checks are upgraded.
             </p>
             <div className="mt-6 flex flex-col gap-2">
               {SUGGESTIONS.map((s) => (
@@ -189,6 +193,7 @@ function NavigatorPage() {
                 {m.role === "assistant" ? (
                   <div className="prose-navigator">
                     <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
+                    <p className="mt-3 text-xs text-muted-foreground">Education only. Not investment advice or a personal recommendation.</p>
                   </div>
                 ) : (
                   m.content
@@ -199,7 +204,7 @@ function NavigatorPage() {
         )}
         {streaming && messages[messages.length - 1]?.role === "user" && (
           <div className="t-mono t-muted" style={{ fontSize: 10, padding: "4px 6px" }}>
-            Navigator is charting…
+            Preparing an explanation…
           </div>
         )}
       </div>
@@ -223,7 +228,8 @@ function NavigatorPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={streaming}
-            placeholder="Ask the Navigator…"
+            aria-label="Ask an education question"
+            placeholder="Ask about an investing concept…"
             style={{
               flex: 1,
               padding: "10px 14px",

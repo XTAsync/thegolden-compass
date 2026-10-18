@@ -9,6 +9,8 @@ import { Wallet, LineChart, UserCog, LayoutGrid, Star, ArrowUpRight } from "luci
 export const Route = createFileRoute("/command")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Command Center — Golden Compass" },
       {
         name: "description",

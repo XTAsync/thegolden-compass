@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Portfolio — Golden Compass" },
       {
         name: "description",
@@ -179,7 +181,7 @@ function PortfolioPage() {
                 </p>
                 <div className="flex gap-2 justify-center mt-4">
                   <Link to="/pools" className="btn-brass" style={{ padding: "10px 18px", fontSize: 11, textDecoration: "none" }}>
-                    ⚓ Pools
+                    Pools
                   </Link>
                   <Link to="/trade" className="btn-brass" style={{ padding: "10px 18px", fontSize: 11, textDecoration: "none" }}>
                     📈 Trade

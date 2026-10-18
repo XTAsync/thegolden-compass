@@ -4,6 +4,8 @@ import { LegalPage, Section } from "@/components/LegalPage";
 export const Route = createFileRoute("/legal/privacy")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Privacy Policy — Golden Compass" },
       { name: "description", content: "Golden Compass privacy policy status and pending legal disclosures." },
       { property: "og:title", content: "Privacy Policy — Golden Compass" },

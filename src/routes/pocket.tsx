@@ -12,6 +12,8 @@ import { ArrowDownLeft, ArrowUpRight, Smartphone, Receipt, PiggyBank } from "luc
 export const Route = createFileRoute("/pocket")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Pocket Access — Wallet | Golden Compass" },
       {
         name: "description",

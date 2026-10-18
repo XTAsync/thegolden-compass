@@ -10,6 +10,8 @@ import type { LucideIcon } from "lucide-react";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Account Centre — Golden Compass" },
       { name: "description", content: "Manage your Golden Compass profile, verification, security, password, notifications and privacy." },
       { name: "robots", content: "noindex, nofollow" },

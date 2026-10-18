@@ -7,6 +7,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/navigator")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Education Assistant — Golden Compass" },
       { name: "description", content: "Golden Compass investing education assistant. No personal recommendations." },
       { name: "robots", content: "noindex, nofollow" },

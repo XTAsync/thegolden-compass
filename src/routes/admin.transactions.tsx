@@ -8,6 +8,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/admin/transactions")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Transactions — Admin" },
       { name: "description", content: "Admin ledger of all deposits and withdrawals; approve or reject pending withdrawal requests." },
       { name: "robots", content: "noindex, nofollow" },
@@ -102,7 +104,7 @@ function AdminTxPage() {
     <div className="flex flex-col gap-4 px-5 pt-6 pb-28 anim-fade-up">
       <header className="flex items-center justify-between">
         <div>
-          <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.18em" }}>THE LEDGER</p>
+          <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.18em" }}>TRANSACTIONS</p>
           <h1 className="t-display t-gold mt-1" style={{ fontSize: 20 }}>All Transactions</h1>
         </div>
         <Link to="/admin" className="t-mono t-muted" style={{ fontSize: 10, textDecoration: "none" }}>← Back</Link>

@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/kyc")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "KYC Verification — Golden Compass" },
       { name: "description", content: "Verify your identity with Golden Compass to unlock deposits and pool investing." },
       { name: "robots", content: "noindex, nofollow" },
@@ -200,7 +202,7 @@ function KycPage() {
           className="btn-brass w-full"
           style={{ height: 52, fontSize: 12 }}
         >
-          {success ? "✓ Submitted" : loading ? "Submitting…" : "⚓ Submit for Review"}
+          {success ? "✓ Submitted" : loading ? "Submitting…" : "Submit for Review"}
         </button>
       </form>
     </div>

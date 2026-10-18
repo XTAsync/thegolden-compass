@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Sign Up — Golden Compass" },
       { name: "description", content: "Create your Golden Compass account for market analysis and investing education." },
       { property: "og:title", content: "Sign Up — Golden Compass" },

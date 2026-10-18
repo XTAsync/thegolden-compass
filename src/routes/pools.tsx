@@ -8,6 +8,8 @@ import { DepositModal } from "@/components/DepositModal";
 export const Route = createFileRoute("/pools")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Investment Pools — Golden Compass" },
       { name: "description", content: "Browse Golden Compass investment pools and allocate wallet funds into the pool that fits your goals." },
       { name: "robots", content: "noindex, nofollow" },

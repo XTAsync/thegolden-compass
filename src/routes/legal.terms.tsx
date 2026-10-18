@@ -4,6 +4,8 @@ import { LegalPage, Section } from "@/components/LegalPage";
 export const Route = createFileRoute("/legal/terms")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Terms of Service — Golden Compass" },
       { name: "description", content: "Draft terms of service governing use of the Golden Compass investment platform in Kenya." },
       { property: "og:title", content: "Terms of Service — Golden Compass" },

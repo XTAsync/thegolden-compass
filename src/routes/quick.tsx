@@ -9,6 +9,8 @@ import type { LucideIcon } from "lucide-react";
 export const Route = createFileRoute("/quick")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Quick Access — Golden Compass" },
       { name: "description", content: "Launch any Golden Compass tool fast: portfolio, history, GC AI, watchlist, orders, help and security." },
       { name: "robots", content: "noindex, nofollow" },

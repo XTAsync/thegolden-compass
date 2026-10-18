@@ -13,6 +13,8 @@ import { MoreVertical, LifeBuoy, Megaphone, ArrowRight, Compass, Newspaper, Sett
 export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Home — Golden Compass" },
       { name: "description", content: "Your Golden Compass hub: what's new, GC AI guidance, market indexes and notices." },
       { name: "robots", content: "noindex, nofollow" },

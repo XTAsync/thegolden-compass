@@ -7,6 +7,8 @@ import { ParallaxBackground } from "@/components/ParallaxBackground";
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Reset Your Password — Golden Compass" },
       { name: "description", content: "Request a secure password reset link for your Golden Compass investor account." },
       { property: "og:title", content: "Reset Your Password — Golden Compass" },

@@ -4,6 +4,8 @@ import { LegalPage, Section } from "@/components/LegalPage";
 export const Route = createFileRoute("/legal/risk-disclosure")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Risk Disclosure — Golden Compass" },
       { name: "description", content: "Draft risk disclosure statement for retail investors using Golden Compass pooled funds and securities trading in Kenya." },
       { property: "og:title", content: "Risk Disclosure — Golden Compass" },

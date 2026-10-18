@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { useCapabilities } from "@/features/settings/hooks";
 
 export const Route = createFileRoute("/navigator")({
   head: () => ({
@@ -31,7 +30,6 @@ const SUGGESTIONS = [
 
 function NavigatorPage() {
   const { user, loading } = useAuth();
-  const capabilities = useCapabilities();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -45,84 +43,8 @@ function NavigatorPage() {
   if (!user) return <Navigate to="/login" />;
 
   const send = async (text: string) => {
-    if (!text.trim() || streaming) return;
-    // The legacy streaming endpoint has no verified output safety check.
-    // Keep it inaccessible here until the guarded education milestone replaces it.
-    if (capabilities.data?.cfdEnabled !== true) {
-      toast.info("Education assistant is temporarily unavailable while safety checks are upgraded.");
-      return;
-    }
-    const userMsg: Msg = { role: "user", content: text.trim() };
-    const next = [...messages, userMsg];
-    setMessages(next);
-    setInput("");
-    setStreaming(true);
-
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-navigator`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ messages: next }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        if (resp.status === 429) toast.error("Rate limit hit. Try again in a moment.");
-        else if (resp.status === 402) toast.error("AI credits depleted.");
-        else toast.error("Education assistant unavailable");
-        setStreaming(false);
-        return;
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      let assistant = "";
-      setMessages((p) => [...p, { role: "assistant", content: "" }]);
-
-      let done = false;
-      while (!done) {
-        const { value, done: rDone } = await reader.read();
-        if (rDone) break;
-        buf += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buf.indexOf("\n")) !== -1) {
-          let line = buf.slice(0, nl);
-          buf = buf.slice(nl + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const j = line.slice(6).trim();
-          if (j === "[DONE]") {
-            done = true;
-            break;
-          }
-          try {
-            const p = JSON.parse(j);
-            const c = p.choices?.[0]?.delta?.content;
-            if (c) {
-              assistant += c;
-              setMessages((prev) =>
-                prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistant } : m)),
-              );
-            }
-          } catch {
-            buf = line + "\n" + buf;
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Connection lost");
-    } finally {
-      setStreaming(false);
-    }
+    if (!text.trim()) return;
+    toast.info("Education assistant is temporarily unavailable while safety checks are upgraded.");
   };
 
   return (

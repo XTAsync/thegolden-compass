@@ -833,3 +833,37 @@
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(232,242,250,0.10);
 }
 
+
+/* Brokerage migration: legacy class aliases remain so existing screens keep working. */
+:root {
+  --font-display: 'Manrope', sans-serif;
+  --font-serif: 'Manrope', sans-serif;
+  --font-fell: 'Manrope', sans-serif;
+  --font-mono: 'Manrope', sans-serif;
+  --muted-foreground: #C4C8D1;
+  --foreground: #F3F4F6;
+  --parchment: var(--foreground);
+  --vellum: var(--foreground);
+  --ring: #F0C040;
+}
+body { font-size: 14px; font-variant-numeric: tabular-nums; }
+.t-sec, .t-muted, .gc-input-label { color: var(--muted-foreground); }
+.t-fell, .t-serif { font-style: normal !important; }
+.t-display, .t-mono, .t-serif, .t-fell, .gc-input-label { letter-spacing: 0 !important; }
+.t-mono, .gc-input-label { font-size: max(12px, 1em) !important; }
+button, a, input, select { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--ring); outline-offset: 3px;
+}
+.spatial-orb, .glass-chip, .px-layer { display: none; }
+.spatial-tilt, .spatial-tilt:hover { transform: none; }
+.glass, .glass-gold, .liquid-glass {
+  border-radius: 8px !important;
+  box-shadow: none;
+}
+.glass::before, .glass-gold::before, .glass-gold::after, .liquid-glass::before, .liquid-glass::after { display: none; }
+.btn-brass { background: var(--primary); color: var(--primary-foreground); min-height: 44px; box-shadow: none; text-shadow: none; letter-spacing: 0; }
+.btn-brass::before { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

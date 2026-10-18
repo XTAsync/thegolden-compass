@@ -5,6 +5,7 @@ import { authenticateRequest, json } from "@/lib/auth.server";
 import { getMpesaUrls } from "@/lib/mpesa-config.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
+import { isMpesaLiveEnabled } from "@/lib/config.server";
 
 // Initiate an M-Pesa STK Push for a deposit. Authenticated users only.
 // Body: { amount: number, pool_id: string, phone: string }
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/api/mpesa-stk")({
           const authResult = await authenticateRequest(request);
           if (authResult instanceof Response) return authResult;
           const { userId } = authResult;
+          if (!(await isMpesaLiveEnabled())) return json({ error: "Real M-Pesa is disabled pending compliance approval. Demo payments are not available yet." }, 403);
           if (!rateLimit(userId, 5, 60_000)) return json({ error: "Too many requests" }, 429);
 
           const body = (await request.json()) as { amount?: number; phone?: string };

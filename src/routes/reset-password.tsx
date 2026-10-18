@@ -7,6 +7,8 @@ import { ParallaxBackground } from "@/components/ParallaxBackground";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Set a New Password — Golden Compass" },
       { name: "description", content: "Choose a new password for your Golden Compass investor account." },
       { name: "robots", content: "noindex, nofollow" },
@@ -128,7 +130,7 @@ function ResetPasswordPage() {
                 </p>
               )}
               <button type="submit" disabled={loading} className="btn-brass w-full" style={{ height: 52, fontSize: 12 }}>
-                {loading ? "Updating…" : "⚓ Update Password"}
+                {loading ? "Updating…" : "Update Password"}
               </button>
             </form>
           )}

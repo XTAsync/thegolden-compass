@@ -18,7 +18,7 @@ export function LoadingSplash() {
         className="t-display t-gold"
         style={{ fontSize: 14, letterSpacing: "0.12em", animation: "pulse 2s ease-in-out infinite" }}
       >
-        NAVIGATING...
+        LOADING…
       </p>
     </div>
   );

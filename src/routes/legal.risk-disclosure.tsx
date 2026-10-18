@@ -4,6 +4,8 @@ import { LegalPage, Section } from "@/components/LegalPage";
 export const Route = createFileRoute("/legal/risk-disclosure")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Risk Disclosure — Golden Compass" },
       { name: "description", content: "Draft risk disclosure statement for retail investors using Golden Compass pooled funds and securities trading in Kenya." },
       { property: "og:title", content: "Risk Disclosure — Golden Compass" },
@@ -17,7 +19,7 @@ export const Route = createFileRoute("/legal/risk-disclosure")({
 
 function RiskPage() {
   return (
-    <LegalPage eyebrow="THE STORM WARNING" title="Risk Disclosure" updated="AUGUST 2026">
+    <LegalPage eyebrow="LEGAL REVIEW" title="Risk Disclosure" updated="OCTOBER 2026">
       <Section heading="1. Capital is at risk">
         The value of investments can fall as well as rise. You may get back less than you
         invested, and in some cases you may lose the entire amount. Past performance and any
@@ -27,7 +29,7 @@ function RiskPage() {
       <Section heading="2. Market risk">
         Prices of securities on the Nairobi Securities Exchange and global markets fluctuate
         with economic conditions, interest rates, company performance, and investor sentiment.
-        Pool net asset values are recalculated periodically and can move sharply.
+        Historical prices do not guarantee future performance.
       </Section>
       <Section heading="3. Liquidity and holding periods">
         Some pools apply a minimum holding period and an exit fee. During that period you may be
@@ -40,10 +42,8 @@ function RiskPage() {
         underlying asset's performance.
       </Section>
       <Section heading="5. Execution and counterparty risk">
-        Orders are routed to third-party brokers and market operators. Execution may be delayed,
-        partially filled or rejected, and executed prices may differ from indicative quotes. We
-        also rely on custodians, payment providers and data vendors, each of which carries
-        counterparty and operational risk.
+        Real order routing and payment services are disabled pending approval. Demo orders,
+        where available, are not market executions and do not establish custody arrangements.
       </Section>
       <Section heading="6. Technology and operational risk">
         Mobile networks, payment rails and platform systems can fail or be unavailable. This may
@@ -52,17 +52,12 @@ function RiskPage() {
       <Section heading="7. Regulatory and tax risk">
         Changes in Kenyan law, CMA regulation or tax treatment (including withholding tax on
         investment income and capital gains tax) may affect returns. We do not provide tax
-        advice; consult a qualified adviser about your position.
+        advice.
       </Section>
       <Section heading="8. No advice, no guarantee">
         Content on the platform, including AI-generated guidance, is general information only
-        and is not a personal recommendation. No return is guaranteed and investments are not
-        deposits and are not covered by any deposit protection scheme.
-      </Section>
-      <Section heading="9. Only invest what you can afford to lose">
-        Consider your objectives, time horizon and financial situation before investing, keep an
-        emergency cash reserve, and diversify. If you do not understand a product, do not invest
-        in it.
+        and is not a personal recommendation. No return is guaranteed. Reviewed product-specific
+        disclosures and any protection arrangements have not been supplied.
       </Section>
     </LegalPage>
   );

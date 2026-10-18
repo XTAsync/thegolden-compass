@@ -7,10 +7,12 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/navigator")({
   head: () => ({
     meta: [
-      { title: "AI Navigator — Golden Compass" },
-      { name: "description", content: "Ask the Golden Compass AI Navigator about your portfolio, pools and investment strategy." },
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
+      { title: "Education Assistant — Golden Compass" },
+      { name: "description", content: "Golden Compass investing education assistant. No personal recommendations." },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "AI Navigator — Golden Compass" },
+      { property: "og:title", content: "Education Assistant — Golden Compass" },
       { property: "og:description", content: "Your conversational guide to portfolio insights and pool questions." },
       { property: "og:url", content: "/navigator" },
     ],
@@ -22,10 +24,10 @@ export const Route = createFileRoute("/navigator")({
 type Msg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = [
-  "How is my portfolio performing?",
-  "Explain the Treasury Vault pool",
-  "What's my current allocation?",
-  "Should I diversify more?",
+  "What does diversification mean?",
+  "What is a market order?",
+  "What is a candlestick chart?",
+  "What are trading fees?",
 ];
 
 function NavigatorPage() {
@@ -43,78 +45,8 @@ function NavigatorPage() {
   if (!user) return <Navigate to="/login" />;
 
   const send = async (text: string) => {
-    if (!text.trim() || streaming) return;
-    const userMsg: Msg = { role: "user", content: text.trim() };
-    const next = [...messages, userMsg];
-    setMessages(next);
-    setInput("");
-    setStreaming(true);
-
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-navigator`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ messages: next }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        if (resp.status === 429) toast.error("Rate limit hit. Try again in a moment.");
-        else if (resp.status === 402) toast.error("AI credits depleted.");
-        else toast.error("Navigator unavailable");
-        setStreaming(false);
-        return;
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      let assistant = "";
-      setMessages((p) => [...p, { role: "assistant", content: "" }]);
-
-      let done = false;
-      while (!done) {
-        const { value, done: rDone } = await reader.read();
-        if (rDone) break;
-        buf += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buf.indexOf("\n")) !== -1) {
-          let line = buf.slice(0, nl);
-          buf = buf.slice(nl + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const j = line.slice(6).trim();
-          if (j === "[DONE]") {
-            done = true;
-            break;
-          }
-          try {
-            const p = JSON.parse(j);
-            const c = p.choices?.[0]?.delta?.content;
-            if (c) {
-              assistant += c;
-              setMessages((prev) =>
-                prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistant } : m)),
-              );
-            }
-          } catch {
-            buf = line + "\n" + buf;
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Connection lost");
-    } finally {
-      setStreaming(false);
-    }
+    if (!text.trim()) return;
+    toast.info("Education assistant is temporarily unavailable while safety checks are upgraded.");
   };
 
   return (
@@ -124,10 +56,10 @@ function NavigatorPage() {
           <span style={{ fontSize: 28 }}>🧭</span>
           <div>
             <h1 className="t-display t-gold" style={{ fontSize: 18 }}>
-              AI Navigator
+              Education Assistant
             </h1>
             <p className="t-mono t-muted" style={{ fontSize: 9, letterSpacing: "0.1em" }}>
-              YOUR PORTFOLIO GUIDE
+              INVESTING CONCEPTS ONLY
             </p>
           </div>
         </div>
@@ -137,7 +69,7 @@ function NavigatorPage() {
         {messages.length === 0 ? (
           <div className="text-center" style={{ paddingTop: 32 }}>
             <p className="t-serif t-parch" style={{ fontSize: 14, lineHeight: 1.5 }}>
-              Ahoy. Ask me anything about your investments, the available pools, or how this voyage works.
+              The education assistant is temporarily unavailable while safety checks are upgraded.
             </p>
             <div className="mt-6 flex flex-col gap-2">
               {SUGGESTIONS.map((s) => (
@@ -189,6 +121,7 @@ function NavigatorPage() {
                 {m.role === "assistant" ? (
                   <div className="prose-navigator">
                     <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
+                    <p className="mt-3 text-xs text-muted-foreground">Education only. Not investment advice or a personal recommendation.</p>
                   </div>
                 ) : (
                   m.content
@@ -199,7 +132,7 @@ function NavigatorPage() {
         )}
         {streaming && messages[messages.length - 1]?.role === "user" && (
           <div className="t-mono t-muted" style={{ fontSize: 10, padding: "4px 6px" }}>
-            Navigator is charting…
+            Preparing an explanation…
           </div>
         )}
       </div>
@@ -223,7 +156,8 @@ function NavigatorPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={streaming}
-            placeholder="Ask the Navigator…"
+            aria-label="Ask an education question"
+            placeholder="Ask about an investing concept…"
             style={{
               flex: 1,
               padding: "10px 14px",

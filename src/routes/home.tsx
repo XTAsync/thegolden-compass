@@ -13,6 +13,8 @@ import { MoreVertical, LifeBuoy, Megaphone, ArrowRight, Compass, Newspaper, Sett
 export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Home — Golden Compass" },
       { name: "description", content: "Your Golden Compass hub: what's new, GC AI guidance, market indexes and notices." },
       { name: "robots", content: "noindex, nofollow" },
@@ -51,7 +53,7 @@ function HomePage() {
         </h1>
         <NotificationBell />
       </header>
-      <p className="t-fell t-sec -mt-2" style={{ fontSize: 14 }}>Navigate your wealth</p>
+      <p className="t-fell t-sec -mt-2" style={{ fontSize: 14 }}>Markets, education and your account</p>
 
       {/* Continue as + Help */}
       <div className="grid grid-cols-[minmax(0,1fr)_88px] gap-3">
@@ -120,7 +122,7 @@ function HomePage() {
         <span className="relative z-10 min-w-0 flex-1">
           <span className="t-fell t-sec block" style={{ fontSize: 13 }}>Want to know more?</span>
           <span className="t-display t-gold block" style={{ fontSize: 22 }}>GC AI</span>
-          <span className="t-mono t-muted block" style={{ fontSize: 9 }}>Ask your navigator about your portfolio & markets</span>
+          <span className="t-mono t-muted block" style={{ fontSize: 9 }}>Learn investing concepts · No personal recommendations</span>
         </span>
         <ArrowRight size={20} className="relative z-10 t-gold shrink-0" />
       </Link>
@@ -170,7 +172,7 @@ function HomePage() {
             <CompassEmblem size={34} />
             <span className="min-w-0 flex-1">
               <span className="t-mono t-gold block" style={{ fontSize: 8, letterSpacing: "0.16em" }}>FEATURED</span>
-              <span className="t-serif t-parch block" style={{ fontSize: 14 }}>Start a pool from KES 5</span>
+              <span className="t-serif t-parch block" style={{ fontSize: 14 }}>View available pool terms</span>
             </span>
             <ArrowRight size={16} className="t-gold" />
           </Link>

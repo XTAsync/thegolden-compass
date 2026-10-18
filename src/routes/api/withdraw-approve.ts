@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { authenticateRequest, json } from "@/lib/auth.server";
 import { refundUnits, refundAndFail } from "@/lib/investment-utils.server";
 import { getMpesaUrls } from "@/lib/mpesa-config.server";
+import { isMpesaLiveEnabled } from "@/lib/config.server";
 
 // Admin approves a withdrawal → automatically calls M-Pesa B2C to pay out.
 // Body: { transaction_id: string, action: "approve" | "reject" }
@@ -47,23 +48,22 @@ export const Route = createFileRoute("/api/withdraw-approve")({
             return json({ success: true, status: "failed" });
           }
 
+          if (!(await isMpesaLiveEnabled())) return json({ error: "Real payouts are disabled pending compliance approval." }, 403);
+
           // ---- APPROVE → trigger B2C payout ----
           if (!tx.payout_phone) {
             return json({ error: "Missing payout phone on transaction" }, 400);
           }
 
           // Sandbox B2C defaults (override via env when going live)
-          const initiator = process.env.MPESA_INITIATOR_NAME || "testapi";
-          const securityCredential =
-            process.env.MPESA_SECURITY_CREDENTIAL ||
-            // Pre-encrypted "Safaricom999!*!" for the sandbox cert
-            "VlmZbZ4HgZeC1qMXcMU2Z4f5o3vbHXSrMrEhlIEGu+Sx5TZkO+0rlT8I7HoIM2eoCK1m8r4rh8XmlKlhmZ9mTtxk8Q5dCJVvZBzNL2jBXf6cQB6/2XSgqXPgM7vUq+1WVoIqCNsFPvjjkkn4lwHB7GPV/3a4bTl4aCOaUqXr+5oVy7VlPCXOzCdVkzc9pSh+jcRLFLSnP4PZxKOIJsyMIQrEqTVj2N5K1CWl6Hbdh2T6c0bXhz2sxTV6HrhhzXIHGnj+MYEyKy1xAWBC8c3p0lH8oAZJSL4FtAcW7lEEMmENfP0+5pY1+1n0mlS8YjLqMeXFIkkRywrkMwZUySE5DA==";
-          const b2cShortcode = process.env.MPESA_B2C_SHORTCODE || "600000";
+          const initiator = process.env['MPESA_INITIATOR_NAME'];
+          const securityCredential = process.env['MPESA_SECURITY_CREDENTIAL'];
+          const b2cShortcode = process.env['MPESA_B2C_SHORTCODE'];
           const consumerKey = process.env.MPESA_CONSUMER_KEY;
           const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
           const callbackBase = process.env.MPESA_CALLBACK_URL; // e.g. https://<host>/api/mpesa-callback
 
-          if (!consumerKey || !consumerSecret || !callbackBase) {
+          if (!consumerKey || !consumerSecret || !callbackBase || !initiator || !securityCredential || !b2cShortcode) {
             return json({ error: "M-Pesa credentials not configured" }, 500);
           }
 
@@ -151,7 +151,7 @@ export const Route = createFileRoute("/api/withdraw-approve")({
           return json({
             success: true,
             status: "processing",
-            message: "Payout initiated. The user will be paid within seconds.",
+            message: "Payout submitted. Completion depends on the payment provider.",
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Unknown error";

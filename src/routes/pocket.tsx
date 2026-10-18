@@ -12,6 +12,8 @@ import { ArrowDownLeft, ArrowUpRight, Smartphone, Receipt, PiggyBank } from "luc
 export const Route = createFileRoute("/pocket")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Pocket Access — Wallet | Golden Compass" },
       {
         name: "description",
@@ -221,7 +223,7 @@ function PocketPage() {
               No money has moved yet.
             </p>
             <p className="t-mono t-muted mt-1" style={{ fontSize: 10 }}>
-              Deposit to begin your voyage.
+              Your deposit and withdrawal activity will appear here.
             </p>
           </div>
         ) : (

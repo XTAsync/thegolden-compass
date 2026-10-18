@@ -129,7 +129,7 @@ export function WithdrawModal({ holding, onClose, onSuccess }: Props) {
           {busy ? "REQUESTING…" : "REQUEST WITHDRAWAL"}
         </button>
         <p className="t-mono t-muted mt-3 text-center" style={{ fontSize: 9 }}>
-          Auto-paid via M-Pesa within seconds of admin approval.
+          Real withdrawals are disabled until compliance approval. Processing times vary.
         </p>
       </div>
     </div>

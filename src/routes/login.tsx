@@ -7,10 +7,12 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
       { title: "Sign In — Golden Compass" },
-      { name: "description", content: "Sign in to Golden Compass to navigate your wealth with AI-powered portfolio management." },
+      { name: "description", content: "Sign in to Golden Compass for market analysis and demo investing." },
       { property: "og:title", content: "Sign In — Golden Compass" },
-      { property: "og:description", content: "Sign in to navigate your wealth with Golden Compass." },
+      { property: "og:description", content: "Access your Golden Compass markets and account." },
       { property: "og:url", content: "/login" },
     ],
     links: [{ rel: "canonical", href: "/login" }],
@@ -48,8 +50,8 @@ function LoginPage() {
       await signIn(email, password);
       setSuccess(true);
       setTimeout(() => navigate({ to: "/home" }), 600);
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Login failed");
       setLoading(false);
     }
   };
@@ -69,7 +71,7 @@ function LoginPage() {
             className="t-mono t-muted mb-2 anim-fade-up"
             style={{ fontSize: 9, letterSpacing: "0.2em", animationDelay: "0.4s" }}
           >
-            EST. MMXXIV
+            MARKETS · EDUCATION · DEMO
           </p>
           <h1
             className="t-display t-gold anim-fade-up"
@@ -81,7 +83,7 @@ function LoginPage() {
             className="t-fell t-sec anim-fade-up"
             style={{ fontSize: 16, fontStyle: "italic", animationDelay: "0.6s" }}
           >
-            Navigate Your Wealth
+            Your investing account
           </p>
         </div>
 
@@ -103,18 +105,22 @@ function LoginPage() {
           <div className="liquid-glass spatial-tilt p-6 mb-4">
             <form onSubmit={handleSubmit}>
               <div className="gc-input-wrap mb-4">
-                <label className="gc-input-label">Email Address</label>
+                <label htmlFor="login-email" className="gc-input-label">Email Address</label>
                 <input
+                  id="login-email"
+                  autoComplete="email"
                   type="email"
                   className={`gc-input ${shakeField === "email" ? "shake" : ""}`}
-                  placeholder="demo@goldencompass.co"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="gc-input-wrap mb-4">
-                <label className="gc-input-label">Passphrase</label>
+                <label htmlFor="login-password" className="gc-input-label">Password</label>
                 <input
+                  id="login-password"
+                  autoComplete="current-password"
                   type="password"
                   className={`gc-input ${shakeField === "password" ? "shake" : ""}`}
                   placeholder="••••••••"
@@ -152,7 +158,7 @@ function LoginPage() {
                     }}
                   />
                 ) : (
-                  <>⚓ Navigate In</>
+                  <>Sign in</>
                 )}
               </button>
             </form>
@@ -170,7 +176,7 @@ function LoginPage() {
 
           <div className="liquid-glass p-4 text-center" style={{ borderRadius: 22 }}>
             <p className="t-fell t-sec" style={{ fontSize: 13, fontStyle: "italic", marginBottom: 8 }}>
-              New to the fleet?
+              New to Golden Compass?
             </p>
             <Link
               to="/signup"
@@ -186,7 +192,7 @@ function LoginPage() {
                 transition: "all 0.2s ease",
               }}
             >
-              ⚓ Request Boarding Pass
+              Create account
             </Link>
           </div>
 

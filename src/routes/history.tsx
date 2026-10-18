@@ -92,7 +92,7 @@ function HistoryPage() {
             The ledger is empty.
           </p>
           <p className="t-mono t-muted mt-2" style={{ fontSize: 10 }}>
-            Your voyages will be recorded here.
+            Your transactions will be recorded here.
           </p>
         </div>
       ) : (

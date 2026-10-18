@@ -66,20 +66,20 @@ function CommandCenter() {
             COMMAND CENTER
           </p>
           <h1 className="t-display t-gold mt-1 truncate" style={{ fontSize: 20 }}>
-            Shadow Sailor {s.firstName}
+            Welcome, {s.firstName}
           </h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <NotificationBell />
           <Link
             to="/pools"
-            aria-label="Bonus and earning opportunities"
+            aria-label="View pool terms"
             className="glass flex items-center gap-1.5 rounded-full"
             style={{ padding: "9px 13px", textDecoration: "none", color: "var(--gold-300)" }}
           >
             <Star size={15} strokeWidth={1.8} />
             <span className="t-mono" style={{ fontSize: 9, letterSpacing: "0.12em" }}>
-              BONUS
+              POOLS
             </span>
           </Link>
         </div>

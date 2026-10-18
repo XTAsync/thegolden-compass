@@ -221,7 +221,7 @@ function PocketPage() {
               No money has moved yet.
             </p>
             <p className="t-mono t-muted mt-1" style={{ fontSize: 10 }}>
-              Deposit to begin your voyage.
+              Your deposit and withdrawal activity will appear here.
             </p>
           </div>
         ) : (

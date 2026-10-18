@@ -31,7 +31,6 @@ const ITEMS: Item[] = [
   { to: "/trade", Icon: Eye, label: "Watchlist" },
   { to: "/orders", Icon: Receipt, label: "Orders" },
   { to: "/pools", Icon: Anchor, label: "Pools" },
-  { to: "/pools", Icon: Star, label: "Rewards" },
   { to: "/account", Icon: Bell, label: "Alerts" },
   { to: "/kyc", Icon: ShieldCheck, label: "Verify" },
   { to: "/account", Icon: Settings, label: "Settings" },

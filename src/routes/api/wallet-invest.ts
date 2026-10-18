@@ -15,6 +15,8 @@ export const Route = createFileRoute("/api/wallet-invest")({
           const authResult = await authenticateRequest(request);
           if (authResult instanceof Response) return authResult;
           const { userId, claims } = authResult;
+          // Legacy wallet and holding writes are not one atomic transaction.
+          return json({ error: "Pool transfers are temporarily disabled while atomic settlement is upgraded. Your existing wallet and pools are unchanged." }, 403);
           if (!rateLimit(userId, 10, 60_000)) return json({ error: "Too many requests" }, 429);
 
           const mfaBlock = await requireFreshAal2(userId, claims);

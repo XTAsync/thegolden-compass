@@ -5,6 +5,7 @@ import { authenticateRequest, json } from "@/lib/auth.server";
 import { requireFreshAal2 } from "@/lib/mfa.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
+import { isMpesaLiveEnabled } from "@/lib/config.server";
 
 // Body: { pool_id: string, amount: number }
 // Enforces holding period & exit fee. Creates a 'pending' withdrawal transaction
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/api/withdraw-request")({
           const authResult = await authenticateRequest(request);
           if (authResult instanceof Response) return authResult;
           const { userId, claims } = authResult;
+          if (!(await isMpesaLiveEnabled())) return json({ error: "Real withdrawals are disabled pending compliance approval." }, 403);
           if (!rateLimit(userId, 5, 60_000)) return json({ error: "Too many requests" }, 429);
 
           const mfaBlock = await requireFreshAal2(userId, claims);

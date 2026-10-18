@@ -12,6 +12,9 @@ export const Route = createFileRoute("/api/trade")({
         const authResult = await authenticateRequest(request);
         if (authResult instanceof Response) return authResult;
         const { userId, claims } = authResult;
+        // Legacy fills modify non-separated holdings without atomic cash settlement.
+        // Keep disabled until the isolated demo ledger/order milestone replaces this path.
+        return json({ error: "Order execution is temporarily disabled while demo settlement is upgraded. No funds or holdings have changed." }, 403);
         if (!rateLimit(userId, 10, 60_000)) return json({ error: "Too many requests" }, 429);
 
         // Step-up auth for MFA-enrolled users (opt-in; no-op otherwise).

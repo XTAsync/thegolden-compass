@@ -117,13 +117,13 @@ function PortfolioPage() {
     <div className="flex flex-col gap-5 px-5 pt-6 pb-28 anim-fade-up">
       <header>
         <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.18em" }}>
-          THE TREASURE MAP
+          ACCOUNT HOLDINGS
         </p>
         <h1 className="t-display t-gold mt-1" style={{ fontSize: 22 }}>
           Portfolio
         </h1>
         <p className="t-serif t-sec mt-2" style={{ fontSize: 13, fontStyle: "italic" }}>
-          Every holding you carry, charted in one place.
+          Recorded pool holdings and stock positions in one place.
         </p>
       </header>
 
@@ -175,7 +175,7 @@ function PortfolioPage() {
                   No holdings yet.
                 </p>
                 <p className="t-mono t-muted mt-2" style={{ fontSize: 10 }}>
-                  Invest in a pool or trade a stock to begin your voyage.
+                  Your settled holdings will appear here.
                 </p>
                 <div className="flex gap-2 justify-center mt-4">
                   <Link to="/pools" className="btn-brass" style={{ padding: "10px 18px", fontSize: 11, textDecoration: "none" }}>

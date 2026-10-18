@@ -46,7 +46,7 @@ function ForgotPasswordPage() {
             <CompassEmblem />
           </div>
           <h1 className="t-display t-gold mt-4" style={{ fontSize: 22, letterSpacing: "0.04em" }}>
-            Lost Your Bearings?
+            Reset your password
           </h1>
           <p className="t-serif t-sec mt-2" style={{ fontSize: 13, fontStyle: "italic" }}>
             We'll send a reset link to your email.

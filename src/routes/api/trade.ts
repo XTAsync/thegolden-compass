@@ -4,6 +4,7 @@ import { rateLimit } from "@/lib/rate-limit.server";
 import { requireFreshAal2 } from "@/lib/mfa.server";
 import { placeOrder, getQuote, isSimulatedTrading } from "@/lib/market.server";
 import { estimateFees } from "@/lib/fees.server";
+import { getConfig } from "@/lib/config.server";
 
 export const Route = createFileRoute("/api/trade")({
   server: {
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/api/trade")({
         const { userId, claims } = authResult;
         // Legacy fills modify non-separated holdings without atomic cash settlement.
         // Keep disabled until the isolated demo ledger/order milestone replaces this path.
-        return json({ error: "Order execution is temporarily disabled while demo settlement is upgraded. No funds or holdings have changed." }, 403);
+        if (!(await getConfig<boolean>("atomic_orders_ready", false))) return json({ error: "Order execution is temporarily disabled while demo settlement is upgraded. No funds or holdings have changed." }, 403);
         if (!rateLimit(userId, 10, 60_000)) return json({ error: "Too many requests" }, 429);
 
         // Step-up auth for MFA-enrolled users (opt-in; no-op otherwise).

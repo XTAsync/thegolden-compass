@@ -5,6 +5,7 @@ import { authenticateRequest, json } from "@/lib/auth.server";
 import { requireFreshAal2 } from "@/lib/mfa.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
+import { getConfig } from "@/lib/config.server";
 
 // Move funds from user wallet into a pool. Body: { pool_id, amount }
 export const Route = createFileRoute("/api/wallet-invest")({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/api/wallet-invest")({
           if (authResult instanceof Response) return authResult;
           const { userId, claims } = authResult;
           // Legacy wallet and holding writes are not one atomic transaction.
-          return json({ error: "Pool transfers are temporarily disabled while atomic settlement is upgraded. Your existing wallet and pools are unchanged." }, 403);
+          if (!(await getConfig<boolean>("atomic_pool_transfers_ready", false))) return json({ error: "Pool transfers are temporarily disabled while atomic settlement is upgraded. Your existing wallet and pools are unchanged." }, 403);
           if (!rateLimit(userId, 10, 60_000)) return json({ error: "Too many requests" }, 429);
 
           const mfaBlock = await requireFreshAal2(userId, claims);

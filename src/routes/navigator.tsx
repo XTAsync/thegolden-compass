@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useCapabilities } from "@/features/settings/hooks";
 
 export const Route = createFileRoute("/navigator")({
   head: () => ({
@@ -30,6 +31,7 @@ const SUGGESTIONS = [
 
 function NavigatorPage() {
   const { user, loading } = useAuth();
+  const capabilities = useCapabilities();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -46,8 +48,10 @@ function NavigatorPage() {
     if (!text.trim() || streaming) return;
     // The legacy streaming endpoint has no verified output safety check.
     // Keep it inaccessible here until the guarded education milestone replaces it.
-    toast.info("Education assistant is temporarily unavailable while safety checks are upgraded.");
-    return;
+    if (capabilities.data?.cfdEnabled !== true) {
+      toast.info("Education assistant is temporarily unavailable while safety checks are upgraded.");
+      return;
+    }
     const userMsg: Msg = { role: "user", content: text.trim() };
     const next = [...messages, userMsg];
     setMessages(next);

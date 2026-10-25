@@ -73,3 +73,37 @@ CREATE POLICY "Reviewers can update profiles"
 -- No client code inserts transactions directly (verified by search of src/); all rows are created
 -- by server routes with the service role. Remove the forgery path.
 DROP POLICY IF EXISTS "Users can insert own transactions" ON public.transactions;
+
+-- The server routes write 'processing' (withdraw-approve) and 'cancelled' (mpesa-callback), but the
+-- original CHECK only allowed pending|confirmed|failed, so those writes failed silently
+-- (confirmed on the test DB). Allow the statuses the code actually uses.
+ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_status_check;
+ALTER TABLE public.transactions
+  ADD CONSTRAINT transactions_status_check
+  CHECK (status IN ('pending','processing','confirmed','failed','cancelled'));
+
+-- Notification titles keyed on 'completed', a status that never exists ('confirmed' is used).
+CREATE OR REPLACE FUNCTION public.notify_transaction_change()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF (TG_OP = 'INSERT') OR (OLD.status IS DISTINCT FROM NEW.status) THEN
+    INSERT INTO public.notifications (user_id, type, title, body, metadata)
+    VALUES (
+      NEW.user_id,
+      'transaction_' || COALESCE(NEW.status, 'update'),
+      CASE NEW.status
+        WHEN 'pending' THEN '⏳ Transaction pending'
+        WHEN 'processing' THEN '⏳ Transaction processing'
+        WHEN 'confirmed' THEN '✅ Transaction completed'
+        WHEN 'failed' THEN '❌ Transaction failed'
+        WHEN 'cancelled' THEN '⚠️ Transaction cancelled'
+        ELSE 'Transaction update'
+      END,
+      'Your ' || COALESCE(NEW.type, 'transaction') || ' of KES ' || NEW.amount::text || ' is ' || COALESCE(NEW.status, 'updated'),
+      jsonb_build_object('transaction_id', NEW.id, 'amount', NEW.amount, 'type', NEW.type)
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+REVOKE EXECUTE ON FUNCTION public.notify_transaction_change() FROM PUBLIC, anon, authenticated;

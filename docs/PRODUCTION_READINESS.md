@@ -87,7 +87,9 @@ Date: 2026-10-25. Repo: XTAsync/thegolden-compass @ 534c988. Method: static revi
 - [x] Draft migration locking profile columns + removing transaction INSERT policy
 - [x] Working install (use `npm install --legacy-peer-deps --no-package-lock`; `package-lock.json` is stale, project really uses `bun.lockb`). Baseline: tsc clean, `vite build` OK, vitest 5/5 (settings only), eslint 1442 problems (1419 auto-fixable prettier, rest e.g. `no-explicit-any`)
 - [x] Test Supabase project created: `golden-compass-test` (ref `nlykuyjxamvhjwikqdmz`, eu-central-1). Real Lovable project `jmbemmdnepzjimaglvgi` is not reachable from this account.
-- [~] Apply repo migrations to the test project, in order. DONE: 01 initial schema, 02 notifications, 03-07a (wallet fns, grants, role policies). BLOCKED: 07b (DROP POLICY statements) was cancelled twice by the Supabase confirmation step; needs user approval, then continue with 08 (20260802...), 09 (20260803...), 10 (20260804... sets broker_mode live), 11, 12, 13, then the draft fix migration (20261025090000).
+- [x] All 13 repo migrations applied to the test project `golden-compass-test`. Notes: the Supabase tool cancels any migration containing DROP statements, so 07b was pasted by the user in the SQL editor; in 09 the two `DROP POLICY IF EXISTS` lines on `aml_flags` were omitted because those policies did not exist (no-ops).
+- [x] Reproduced on the test DB as a plain signed-in user: (1) set own `wallet_balance=999999` and `kyc_status='approved'`; (2) inserted a forged pending withdrawal of 50,000; (3) `transactions.status='processing'` is rejected by the CHECK constraint.
+- [ ] Apply `20261025090000_lock_profile_sensitive_columns.sql` to the test DB (contains DROPs, so the user pastes it in the Supabase SQL editor), then re-run the three attacks; expect all blocked while the user's own KYC submit (`not_started`->`pending`) and admin approval still work.
 - [ ] P0-3/4: callback secret + amount check + atomic `confirm_deposit` RPC (+ tests)
 - [ ] P0-5: atomic `request_withdrawal`, `approve_withdrawal`, `refund_withdrawal` RPCs (+ tests)
 - [ ] P0-2: bind payouts to a reservation; add admin double-approve test

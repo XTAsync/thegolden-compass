@@ -89,7 +89,10 @@ Date: 2026-10-25. Repo: XTAsync/thegolden-compass @ 534c988. Method: static revi
 - [x] Test Supabase project created: `golden-compass-test` (ref `nlykuyjxamvhjwikqdmz`, eu-central-1). Real Lovable project `jmbemmdnepzjimaglvgi` is not reachable from this account.
 - [x] All 13 repo migrations applied to the test project `golden-compass-test`. Notes: the Supabase tool cancels any migration containing DROP statements, so 07b was pasted by the user in the SQL editor; in 09 the two `DROP POLICY IF EXISTS` lines on `aml_flags` were omitted because those policies did not exist (no-ops).
 - [x] Reproduced on the test DB as a plain signed-in user: (1) set own `wallet_balance=999999` and `kyc_status='approved'`; (2) inserted a forged pending withdrawal of 50,000; (3) `transactions.status='processing'` is rejected by the CHECK constraint.
-- [ ] Apply `20261025090000_lock_profile_sensitive_columns.sql` to the test DB (contains DROPs, so the user pastes it in the Supabase SQL editor), then re-run the three attacks; expect all blocked while the user's own KYC submit (`not_started`->`pending`) and admin approval still work.
+- [x] Applied `20261025090000_lock_profile_sensitive_columns.sql` to the test DB and re-ran the attacks: wallet edit, self-approve KYC (from not_started and from pending) and forged transaction insert are all blocked; user KYC submit and rename work; admin KYC approval works; admin cannot set wallet_balance; server `credit_wallet` works; `processing` status accepted.
+- [x] New finding fixed in the same migration: admins/compliance had no SELECT policy on `profiles`, so the admin KYC screen updated 0 rows and could not show names.
+- [x] Live (Lovable Cloud) DB checked by the owner on 2026-10-25: 0 withdrawals, 0 profiles with balance>0 or approved KYC, 8 users. No sign the hole was exploited.
+- [ ] Owner pastes the migration into Lovable's chat to apply it to the live DB (after review), then re-runs the three attacks against live.
 - [ ] P0-3/4: callback secret + amount check + atomic `confirm_deposit` RPC (+ tests)
 - [ ] P0-5: atomic `request_withdrawal`, `approve_withdrawal`, `refund_withdrawal` RPCs (+ tests)
 - [ ] P0-2: bind payouts to a reservation; add admin double-approve test

@@ -1,4 +1,7 @@
--- DRAFT (not applied, not yet tested against a real copy of the schema).
+-- TESTED on a scratch copy of the schema (golden-compass-test), NOT yet applied to production.
+-- Verified there: a normal user can no longer change wallet_balance or self-approve KYC, cannot
+-- insert transactions, can still submit KYC (not_started -> pending) and edit their name; an admin
+-- can approve KYC but still cannot touch wallet_balance; server-side credit_wallet still works.
 -- Closes client-side tampering with money / identity columns.
 --
 -- Problem: policy "Users can update own profile" (USING only, no column limits) lets any
@@ -69,6 +72,15 @@ CREATE POLICY "Reviewers can update profiles"
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'compliance'))
   WITH CHECK (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'compliance'));
+
+-- Reviewers also need to READ other users' profiles: Postgres only lets UPDATE touch rows the
+-- caller can SELECT, so without this the admin KYC screen silently updated 0 rows (and could not
+-- show user names). Found on the test DB.
+DROP POLICY IF EXISTS "Reviewers can view profiles" ON public.profiles;
+CREATE POLICY "Reviewers can view profiles"
+  ON public.profiles FOR SELECT
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'compliance'));
 
 -- No client code inserts transactions directly (verified by search of src/); all rows are created
 -- by server routes with the service role. Remove the forgery path.

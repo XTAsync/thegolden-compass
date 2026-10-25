@@ -6,6 +6,7 @@ import { getMpesaUrls } from "@/lib/mpesa-config.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
 import { isMpesaLiveEnabled } from "@/lib/config.server";
+import { withCallbackSecret } from "@/lib/mpesa-security.server";
 
 // Initiate an M-Pesa STK Push for a deposit. Authenticated users only.
 // Body: { amount: number, pool_id: string, phone: string }
@@ -53,7 +54,8 @@ export const Route = createFileRoute("/api/mpesa-stk")({
             const u = new URL(callbackUrl);
             // Force the actual handler path regardless of what was configured
             u.pathname = "/api/mpesa-callback";
-            callbackUrl = u.toString();
+            // Authenticate Safaricom's callback with a secret in the URL (see mpesa-security.server.ts)
+            callbackUrl = withCallbackSecret(u.toString());
           } catch {
             return json({ error: "Invalid MPESA_CALLBACK_URL" }, 500);
           }

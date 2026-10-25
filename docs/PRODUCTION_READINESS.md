@@ -93,9 +93,14 @@ Date: 2026-10-25. Repo: XTAsync/thegolden-compass @ 534c988. Method: static revi
 - [x] New finding fixed in the same migration: admins/compliance had no SELECT policy on `profiles`, so the admin KYC screen updated 0 rows and could not show names.
 - [x] Live (Lovable Cloud) DB checked by the owner on 2026-10-25: 0 withdrawals, 0 profiles with balance>0 or approved KYC, 8 users. No sign the hole was exploited.
 - [ ] Owner pastes the migration into Lovable's chat to apply it to the live DB (after review), then re-runs the three attacks against live.
-- [ ] P0-3/4: callback secret + amount check + atomic `confirm_deposit` RPC (+ tests)
-- [ ] P0-5: atomic `request_withdrawal`, `approve_withdrawal`, `refund_withdrawal` RPCs (+ tests)
-- [ ] P0-2: bind payouts to a reservation; add admin double-approve test
+- [x] P0-3/4: callback secret (fail closed) + amount/receipt check + atomic `confirm_deposit` (migration `20261025120000_atomic_money_flows.sql`, code in `mpesa-callback.ts`, `mpesa-security.server.ts`). Tested on the scratch DB: wallet credited once (250 -> 1250), retries return `already_processed`, wrong amount/missing or reused receipt held for review with an AML flag, user-cancel handled, browser roles cannot call the functions. 9 unit tests for the secret check.
+- [x] P0-5: atomic `request_withdrawal`, `approve_withdrawal_start`, `fail_withdrawal`, `complete_withdrawal`. Tested on the scratch DB (19 scripted checks): fee/units reserved correctly, over-ask and locked pools refused, non-admin cannot approve, double approve refused, refund returns GROSS once (old code refunded NET and lost the exit fee), no double refund, completed payout cannot be failed.
+- [x] P0-2: payouts bound to a reservation (`reserved_at`); a forged pending withdrawal returns `not_reserved` and can never be paid or refunded.
+- [ ] TRUE concurrency test: the Supabase tool runs calls one after another, so simultaneous requests were not exercised. Correctness relies on Postgres `SELECT ... FOR UPDATE`; add an integration test that opens two real connections (needs the DB connection string) before go-live.
+- [ ] Deposit race: the STK route stores `mpesa_checkout_id` AFTER the push; a very fast callback could arrive first and find no transaction (`not_found`). Store the id before relying on the callback, or add a reconciliation job using STK Query.
+- [ ] Reconciliation job: list `processing` withdrawals and `pending` deposits older than N minutes (needs M-Pesa Transaction Status / STK Query) and alert; the unknown-outcome path in `withdraw-approve.ts` leaves rows in `processing` on purpose.
+- [ ] Set `MPESA_CALLBACK_SECRET` (random, >= 24 chars) in the host env BEFORE enabling live M-Pesa; without it all callbacks are rejected (unless `MPESA_ENV=sandbox`).
+- [ ] Net payout is floored to whole KES (`Math.floor`), so up to KES 0.99 per withdrawal is not paid out; decide whether to round the fee up instead.
 - [ ] P1: durable rate limiting, server-side audit log, remove stray workflow, `.env.example`
 - [ ] Add Vitest + `test`/`typecheck` scripts; cover money paths and RLS (pgTAP or SQL tests)
 - [ ] Work through roadmap checkpoints 1–10

@@ -6,7 +6,8 @@ import { getMpesaUrls } from "@/lib/mpesa-config.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
 import { isMpesaLiveEnabled } from "@/lib/config.server";
-import { withCallbackSecret } from "@/lib/mpesa-security.server";
+import { withCallbackSecret, mayStartMpesaPayment } from "@/lib/mpesa-security.server";
+import { attachCheckoutId } from "@/lib/ledger.server";
 
 // Initiate an M-Pesa STK Push for a deposit. Authenticated users only.
 // Body: { amount: number, pool_id: string, phone: string }
@@ -18,7 +19,9 @@ export const Route = createFileRoute("/api/mpesa-stk")({
           const authResult = await authenticateRequest(request);
           if (authResult instanceof Response) return authResult;
           const { userId } = authResult;
-          if (!(await isMpesaLiveEnabled())) return json({ error: "Real M-Pesa is disabled pending compliance approval. Demo payments are not available yet." }, 403);
+          if (!mayStartMpesaPayment(await isMpesaLiveEnabled())) {
+            return json({ error: "M-Pesa payments are disabled in this environment." }, 403);
+          }
           if (!rateLimit(userId, 5, 60_000)) return json({ error: "Too many requests" }, 429);
 
           const body = (await request.json()) as { amount?: number; phone?: string };
@@ -129,10 +132,29 @@ export const Route = createFileRoute("/api/mpesa-stk")({
             return json({ error: reason }, 502);
           }
 
-          await supabaseAdmin
-            .from("transactions")
-            .update({ mpesa_checkout_id: stkData.CheckoutRequestID ?? null })
-            .eq("id", tx.id);
+          // Save the checkout id atomically. If Safaricom's callback already arrived, this also
+          // settles it (see supabase/migrations/20261027120000_mpesa_callback_inbox.sql).
+          if (stkData.CheckoutRequestID) {
+            try {
+              const att = await attachCheckoutId(tx.id, stkData.CheckoutRequestID);
+              const settlement = att.settlement as { result?: string; amount?: number } | undefined;
+              if (att.result === "replayed" && settlement?.result === "confirmed") {
+                await supabaseAdmin.from("notifications").insert({
+                  user_id: userId,
+                  type: "deposit",
+                  title: "Wallet credited",
+                  body: `KES ${Number(settlement.amount).toLocaleString()} added to your wallet.`,
+                });
+              }
+            } catch (e) {
+              // Never lose the checkout id: fall back to the plain save (pre-migration behaviour).
+              console.error("[mpesa-stk] attach_checkout_id failed, saving id directly", { txId: tx.id, error: e });
+              await supabaseAdmin
+                .from("transactions")
+                .update({ mpesa_checkout_id: stkData.CheckoutRequestID })
+                .eq("id", tx.id);
+            }
+          }
 
           return json({
             success: true,

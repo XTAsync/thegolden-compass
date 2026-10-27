@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { json } from "@/lib/auth.server";
 import { verifySafaricomOrigin } from "@/lib/mpesa-security.server";
-import { confirmDeposit } from "@/lib/ledger.server";
+import { confirmDeposit, queueUnmatchedCallback } from "@/lib/ledger.server";
 
 // Public callback Safaricom POSTs to after an STK push. Authenticated by the secret in the URL
 // (see mpesa-security.server.ts). Body shape:
@@ -35,12 +35,16 @@ export const Route = createFileRoute("/api/mpesa-callback")({
           amountRaw == null || Number.isNaN(Number(amountRaw)) ? null : Number(amountRaw);
 
         try {
-          const res = await confirmDeposit({
+          const settleArgs = {
             checkoutId: cb.CheckoutRequestID,
             resultCode: typeof cb.ResultCode === "number" ? cb.ResultCode : null,
             receipt,
             paidAmount: paid,
-          });
+          };
+          let res = await confirmDeposit(settleArgs);
+          // A very fast callback can beat the STK route saving the checkout id. Park it; the STK
+          // route settles it as soon as the id is saved (or this call settles it if it just was).
+          if (res.result === "not_found") res = await queueUnmatchedCallback(settleArgs);
 
           if (res.result === "confirmed") {
             // Courtesy notification only; the money is already settled and must not depend on this.

@@ -89,9 +89,9 @@ export const Route = createFileRoute("/api/mpesa-status")({
 
           const code = queryData.ResultCode;
           if (code === "0") {
-            // Success — callback should also fire, but mark confirmed if not already
-            // (Don't credit units here; callback handles unit math with receipt)
-            return json({ status: "confirmed", result_desc: queryData.ResultDesc });
+            // Safaricom says the customer paid, but only the callback (which carries the receipt)
+            // settles the wallet. Never report "confirmed" until our own record says so.
+            return json({ status: "pending", result_desc: "Payment received, finalising" });
           }
 
           // Cancelled or failed

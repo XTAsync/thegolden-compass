@@ -63,3 +63,27 @@ export function withCallbackSecret(url: string, env: Env = process.env): string 
   u.searchParams.set("s", secret);
   return u.toString();
 }
+
+/**
+ * Sandbox payments move FAKE money. They are allowed only when MPESA_SANDBOX_ENABLED=true is set
+ * explicitly, MPESA_ENV is explicitly "sandbox", and the deployment is not Vercel production.
+ * Set MPESA_SANDBOX_ENABLED only on the Preview/Development environments, never on Production.
+ */
+export function isSandboxPaymentsEnabled(env: Env = process.env): boolean {
+  return (
+    isExplicitSandbox(env) &&
+    (env.MPESA_SANDBOX_ENABLED ?? "").trim().toLowerCase() === "true" &&
+    (env.VERCEL_ENV ?? "").trim().toLowerCase() !== "production"
+  );
+}
+
+/**
+ * Whether this deployment may start an M-Pesa deposit.
+ * - Against the real Daraja API (anything other than an explicit sandbox) the compliance flag
+ *   `mpesa_live` must be on.
+ * - Against the Daraja sandbox, only the sandbox gate matters, and `mpesa_live` is ignored so a
+ *   mistaken live flag can never let fake sandbox money credit real wallets.
+ */
+export function mayStartMpesaPayment(liveFlag: boolean, env: Env = process.env): boolean {
+  return isExplicitSandbox(env) ? isSandboxPaymentsEnabled(env) : liveFlag;
+}

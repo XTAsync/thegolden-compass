@@ -32,6 +32,29 @@ export function confirmDeposit(args: {
   });
 }
 
+/**
+ * Park (or settle) a callback whose transaction has no checkout id yet. See
+ * supabase/migrations/20261027120000_mpesa_callback_inbox.sql.
+ */
+export function queueUnmatchedCallback(args: {
+  checkoutId: string;
+  resultCode: number | null;
+  receipt: string | null;
+  paidAmount: number | null;
+}) {
+  return rpc("queue_unmatched_callback", {
+    p_checkout_id: args.checkoutId,
+    p_result_code: args.resultCode,
+    p_receipt: args.receipt,
+    p_paid_amount: args.paidAmount,
+  });
+}
+
+/** Save the checkout id on a pending deposit and settle any callback that arrived first. */
+export function attachCheckoutId(txId: string, checkoutId: string) {
+  return rpc("attach_checkout_id", { p_tx_id: txId, p_checkout_id: checkoutId });
+}
+
 export function requestWithdrawal(args: {
   userId: string;
   poolId: string;

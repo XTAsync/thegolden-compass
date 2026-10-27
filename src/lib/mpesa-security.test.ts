@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   constantTimeEqual,
+  isSandboxPaymentsEnabled,
+  mayStartMpesaPayment,
   verifySafaricomOrigin,
   withCallbackSecret,
 } from "./mpesa-security.server";
@@ -66,5 +68,33 @@ describe("withCallbackSecret", () => {
 
   it("leaves the URL alone without a usable secret", () => {
     expect(withCallbackSecret("https://app.example.com/x", {})).toBe("https://app.example.com/x");
+  });
+});
+
+describe("sandbox payment gate", () => {
+  const sandbox = { MPESA_ENV: "sandbox", MPESA_SANDBOX_ENABLED: "true" };
+
+  it("allows sandbox payments only when explicitly enabled", () => {
+    expect(isSandboxPaymentsEnabled(sandbox)).toBe(true);
+    expect(isSandboxPaymentsEnabled({ MPESA_ENV: "sandbox" })).toBe(false);
+    expect(isSandboxPaymentsEnabled({ MPESA_SANDBOX_ENABLED: "true" })).toBe(false); // env unset = production
+    expect(isSandboxPaymentsEnabled({ ...sandbox, MPESA_SANDBOX_ENABLED: "yes" })).toBe(false);
+  });
+
+  it("never allows fake sandbox money on Vercel production", () => {
+    expect(isSandboxPaymentsEnabled({ ...sandbox, VERCEL_ENV: "production" })).toBe(false);
+    expect(isSandboxPaymentsEnabled({ ...sandbox, VERCEL_ENV: "preview" })).toBe(true);
+  });
+
+  it("ignores the live flag when pointed at the sandbox", () => {
+    // A mistaken mpesa_live=true must not let sandbox money credit real wallets.
+    expect(mayStartMpesaPayment(true, { MPESA_ENV: "sandbox" })).toBe(false);
+    expect(mayStartMpesaPayment(false, sandbox)).toBe(true);
+  });
+
+  it("requires the compliance flag against the real Daraja API", () => {
+    expect(mayStartMpesaPayment(false, { MPESA_ENV: "production" })).toBe(false);
+    expect(mayStartMpesaPayment(true, { MPESA_ENV: "production" })).toBe(true);
+    expect(mayStartMpesaPayment(false, {})).toBe(false); // unset env is production
   });
 });

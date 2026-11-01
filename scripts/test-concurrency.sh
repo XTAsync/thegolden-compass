@@ -32,4 +32,26 @@ done; wait
 TOTAL=$(wc -l < "$TMP"); DISTINCT=$(sort -u "$TMP" | wc -l); rm -f "$TMP"
 [ "$TOTAL" = "$DISTINCT" ] || fail "a row was claimed twice ($TOTAL claimed, $DISTINCT distinct)"
 echo "ok: parallel claim_stuck_deposits gave out $TOTAL rows with no duplicates"
+
+# 3. Eight parallel wallet withdrawals of 500 against a balance of 1000: exactly two succeed.
+q "update public.profiles set wallet_balance = 1000 where id='$U'" >/dev/null
+OUT=$(mktemp)
+for i in 1 2 3 4 5 6 7 8; do
+  q "select public.request_wallet_withdrawal('$U', 500, '254712345678', gen_random_uuid())->>'result'" >> "$OUT" || true &
+done; wait
+OKS=$(grep -c '^ok$' "$OUT" || true); rm -f "$OUT"
+BAL=$(q "select wallet_balance::int from public.profiles where id='$U'")
+[ "$OKS" = "2" ] && [ "$BAL" = "0" ] || fail "expected 2 ok and balance 0, got $OKS ok and balance $BAL"
+echo "ok: parallel wallet withdrawals cannot overdraw (2 of 8 passed, balance 0)"
+
+# 4. Eight parallel taps with the SAME request id make one withdrawal and debit once.
+q "update public.profiles set wallet_balance = 5000 where id='$U'" >/dev/null
+RID=$(q "select gen_random_uuid()")
+for i in 1 2 3 4 5 6 7 8; do
+  q "select public.request_wallet_withdrawal('$U', 1000, '254712345678', '$RID')" >/dev/null 2>&1 || true &
+done; wait
+ROWS=$(q "select count(*) from public.transactions where user_id='$U' and request_id='$RID'")
+BAL=$(q "select wallet_balance::int from public.profiles where id='$U'")
+[ "$ROWS" = "1" ] && [ "$BAL" = "4000" ] || fail "same request id: expected 1 row and balance 4000, got $ROWS rows and balance $BAL"
+echo "ok: 8 parallel taps with one request id made one withdrawal"
 cleanup; echo "concurrency checks passed"

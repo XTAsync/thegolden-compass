@@ -38,6 +38,7 @@ import { Route as AdminTransactionsRouteImport } from './routes/admin.transactio
 import { Route as ApiCandlesRouteImport } from './routes/api/candles'
 import { Route as ApiCapabilitiesRouteImport } from './routes/api/capabilities'
 import { Route as ApiFeesRouteImport } from './routes/api/fees'
+import { Route as ApiMoneyConfigRouteImport } from './routes/api/money-config'
 import { Route as ApiMpesaB2cResultRouteImport } from './routes/api/mpesa-b2c-result'
 import { Route as ApiMpesaB2cTimeoutRouteImport } from './routes/api/mpesa-b2c-timeout'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api/mpesa-callback'
@@ -205,6 +206,11 @@ const ApiFeesRoute = ApiFeesRouteImport.update({
   path: '/api/fees',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMoneyConfigRoute = ApiMoneyConfigRouteImport.update({
+  id: '/api/money-config',
+  path: '/api/money-config',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMpesaB2cResultRoute = ApiMpesaB2cResultRouteImport.update({
   id: '/api/mpesa-b2c-result',
   path: '/api/mpesa-b2c-result',
@@ -334,6 +340,7 @@ export interface FileRoutesByFullPath {
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
+  '/api/money-config': typeof ApiMoneyConfigRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -384,6 +391,7 @@ export interface FileRoutesByTo {
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
+  '/api/money-config': typeof ApiMoneyConfigRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
+  '/api/money-config': typeof ApiMoneyConfigRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -487,6 +496,7 @@ export interface FileRouteTypes {
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
+    | '/api/money-config'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
+    | '/api/money-config'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
@@ -587,6 +598,7 @@ export interface FileRouteTypes {
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
+    | '/api/money-config'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
@@ -636,6 +648,7 @@ export interface RootRouteChildren {
   ApiCandlesRoute: typeof ApiCandlesRoute
   ApiCapabilitiesRoute: typeof ApiCapabilitiesRoute
   ApiFeesRoute: typeof ApiFeesRoute
+  ApiMoneyConfigRoute: typeof ApiMoneyConfigRoute
   ApiMpesaB2cResultRoute: typeof ApiMpesaB2cResultRoute
   ApiMpesaB2cTimeoutRoute: typeof ApiMpesaB2cTimeoutRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
@@ -862,6 +875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFeesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/money-config': {
+      id: '/api/money-config'
+      path: '/api/money-config'
+      fullPath: '/api/money-config'
+      preLoaderRoute: typeof ApiMoneyConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mpesa-b2c-result': {
       id: '/api/mpesa-b2c-result'
       path: '/api/mpesa-b2c-result'
@@ -1039,6 +1059,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCandlesRoute: ApiCandlesRoute,
   ApiCapabilitiesRoute: ApiCapabilitiesRoute,
   ApiFeesRoute: ApiFeesRoute,
+  ApiMoneyConfigRoute: ApiMoneyConfigRoute,
   ApiMpesaB2cResultRoute: ApiMpesaB2cResultRoute,
   ApiMpesaB2cTimeoutRoute: ApiMpesaB2cTimeoutRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,

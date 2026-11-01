@@ -60,12 +60,63 @@ export function requestWithdrawal(args: {
   poolId: string;
   amount: number;
   phone: string;
+  requestId?: string | null;
+  expectedNet?: number | null;
 }) {
   return rpc("request_withdrawal", {
     p_user_id: args.userId,
     p_pool_id: args.poolId,
     p_amount: args.amount,
     p_phone: args.phone,
+    p_request_id: args.requestId ?? null,
+    p_expected_net: args.expectedNet ?? null,
+  });
+}
+
+/** Wallet-balance withdrawal (PR2 migration, T9): debits the wallet and queues the payout. */
+export function requestWalletWithdrawal(args: {
+  userId: string;
+  amount: number;
+  phone: string;
+  requestId?: string | null;
+  expectedNet?: number | null;
+}) {
+  return rpc("request_wallet_withdrawal", {
+    p_user_id: args.userId,
+    p_amount: args.amount,
+    p_phone: args.phone,
+    p_request_id: args.requestId ?? null,
+    p_expected_net: args.expectedNet ?? null,
+  });
+}
+
+/** Wallet -> pool in one transaction (PR2 migration, T8). */
+export function investInPool(args: {
+  userId: string;
+  poolId: string;
+  amount: number;
+  requestId?: string | null;
+}) {
+  return rpc("invest_in_pool", {
+    p_user_id: args.userId,
+    p_pool_id: args.poolId,
+    p_amount: args.amount,
+    p_request_id: args.requestId ?? null,
+  });
+}
+
+/** Quote, pause/cap status and pending amounts in one read (PR2 migration, T13). */
+export function moneyConfig(args: {
+  userId: string;
+  source?: "wallet" | "pool" | null;
+  poolId?: string | null;
+  amount?: number | null;
+}) {
+  return rpc("money_config", {
+    p_user_id: args.userId,
+    p_source: args.source ?? null,
+    p_pool_id: args.poolId ?? null,
+    p_amount: args.amount ?? null,
   });
 }
 

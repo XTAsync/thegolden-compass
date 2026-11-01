@@ -6,9 +6,11 @@ import { requireFreshAal2 } from "@/lib/mfa.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
 import { isMpesaLiveEnabled } from "@/lib/config.server";
-import { requestWithdrawal } from "@/lib/ledger.server";
+import { requestWalletWithdrawal, requestWithdrawal } from "@/lib/ledger.server";
+import { moneyErrorResponse } from "@/lib/money-errors";
 
-// Body: { pool_id: string, amount: number, phone: string }
+// Body: { source: "wallet" | "pool", pool_id?: string (pool only), amount: number (whole KES),
+//         phone: string, request_id?: uuid, expected_net?: number }
 // Reserves the user's units and creates a 'pending' withdrawal in ONE database transaction
 // (request_withdrawal). Holding period, exit fee, balance check and the reservation all happen
 // under a row lock, so parallel requests cannot spend the same holding twice.
@@ -32,14 +34,24 @@ export const Route = createFileRoute("/api/withdraw-request")({
           if (mfaBlock) return mfaBlock;
 
           const body = (await request.json()) as {
+            source?: string;
             pool_id?: string;
             amount?: number;
             phone?: string;
+            request_id?: string;
+            expected_net?: number;
           };
+          const source = body.source === "wallet" ? "wallet" : "pool";
           const pool_id = String(body.pool_id ?? "");
           const amount = Number(body.amount);
-          if (!pool_id || !Number.isFinite(amount) || amount <= 0)
+          if ((source === "pool" && !pool_id) || !Number.isFinite(amount) || amount <= 0)
             return json({ error: "Invalid input" }, 400);
+          const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          const requestId = body.request_id && UUID.test(body.request_id) ? body.request_id : null;
+          const expectedNet =
+            body.expected_net != null && Number.isFinite(Number(body.expected_net))
+              ? Number(body.expected_net)
+              : null;
 
           const phoneRaw = String(body.phone ?? "").replace(/\D/g, "");
           const phone = normaliseKenyanPhone(phoneRaw);
@@ -49,26 +61,24 @@ export const Route = createFileRoute("/api/withdraw-request")({
           const limit = await checkTransactionLimit(userId, "withdrawal", amount);
           if (!limit.ok) return json({ error: limit.error }, 400);
 
-          const res = await requestWithdrawal({ userId, poolId: pool_id, amount, phone });
+          const res =
+            source === "wallet"
+              ? await requestWalletWithdrawal({ userId, amount, phone, requestId, expectedNet })
+              : await requestWithdrawal({ userId, poolId: pool_id, amount, phone, requestId, expectedNet });
 
-          switch (res.result) {
-            case "ok":
-              break;
-            case "pool_not_found":
-              return json({ error: "Pool not found" }, 404);
-            case "no_holdings":
-              return json({ error: "You have no holdings in this pool" }, 400);
-            case "insufficient_holdings":
-              return json(
-                { error: `Maximum withdrawable: KES ${Number(res.max).toFixed(2)}` },
-                400,
-              );
-            case "locked": {
-              const d = Number(res.days_remaining);
-              return json({ error: `Locked for ${d} more day${d === 1 ? "" : "s"}` }, 400);
-            }
-            default:
-              return json({ error: "Invalid input" }, 400);
+          const failure = moneyErrorResponse(res);
+          if (failure) return json(failure.body, failure.status);
+
+          if (res.result === "replayed") {
+            return json({
+              success: true,
+              replayed: true,
+              transaction_id: res.transaction_id,
+              status: res.status,
+              gross: Number(res.gross),
+              fee: Number(res.fee),
+              net: Number(res.net),
+            });
           }
 
           const txId = String(res.transaction_id);
@@ -94,7 +104,7 @@ export const Route = createFileRoute("/api/withdraw-request")({
             gross,
             fee,
             net,
-            message: `Withdrawal of KES ${net.toFixed(2)} requested (KES ${fee.toFixed(2)} exit fee). Pending admin approval.`,
+            message: `Withdrawal of KES ${net.toLocaleString("en-KE")} requested${fee > 0 ? ` (fee KES ${fee.toLocaleString("en-KE")})` : ""}. Usually within 24 hours.`,
           });
         } catch (e) {
           console.error("[withdraw-request] error", e);

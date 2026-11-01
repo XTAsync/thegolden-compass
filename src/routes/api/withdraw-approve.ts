@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { authenticateRequest, json } from "@/lib/auth.server";
 import { getMpesaUrls } from "@/lib/mpesa-config.server";
+import { getDarajaToken } from "@/lib/daraja-token.server";
 import { isMpesaLiveEnabled } from "@/lib/config.server";
 import { withCallbackSecret } from "@/lib/mpesa-security.server";
 import { approveWithdrawalStart, failWithdrawal } from "@/lib/ledger.server";
@@ -76,11 +77,13 @@ export const Route = createFileRoute("/api/withdraw-approve")({
             return json({ error: "M-Pesa credentials not configured" }, 500);
           }
           let resultUrl = "";
+          let timeoutUrl = "";
           try {
             const u = new URL(
               /^https?:\/\//i.test(callbackBase) ? callbackBase : "https://" + callbackBase,
             );
             resultUrl = withCallbackSecret(`${u.origin}/api/mpesa-b2c-result`);
+            timeoutUrl = withCallbackSecret(`${u.origin}/api/mpesa-b2c-timeout`);
           } catch {
             return json({ error: "Invalid MPESA_CALLBACK_URL" }, 500);
           }
@@ -96,6 +99,11 @@ export const Route = createFileRoute("/api/withdraw-approve")({
               return json({ error: "Not a withdrawal" }, 400);
             case "forbidden":
               return json({ error: "Forbidden: admin only" }, 403);
+            case "self_approval":
+              return json(
+                { error: "You cannot approve your own withdrawal. Ask another admin." },
+                403,
+              );
             case "not_reserved":
               return json(
                 { error: "This withdrawal has no reserved holdings and cannot be paid" },
@@ -115,12 +123,7 @@ export const Route = createFileRoute("/api/withdraw-approve")({
           const mpesaUrls = getMpesaUrls();
           let access_token: string;
           try {
-            const tokRes = await fetch(mpesaUrls.oauth, {
-              headers: { Authorization: "Basic " + btoa(`${consumerKey}:${consumerSecret}`) },
-            });
-            if (!tokRes.ok) throw new Error(`oauth ${tokRes.status}`);
-            access_token = ((await tokRes.json()) as { access_token: string }).access_token;
-            if (!access_token) throw new Error("oauth: no token");
+            access_token = await getDarajaToken(consumerKey, consumerSecret);
           } catch {
             await failWithdrawal(txId, "M-Pesa auth failed", ["processing"]);
             return json({ error: "M-Pesa auth failed" }, 502);
@@ -135,7 +138,7 @@ export const Route = createFileRoute("/api/withdraw-approve")({
             PartyA: b2cShortcode,
             PartyB: payoutPhone,
             Remarks: `Golden Compass withdrawal ${txId.slice(0, 8)}`,
-            QueueTimeOutURL: resultUrl,
+            QueueTimeOutURL: timeoutUrl, // separate route: a timeout is an unknown outcome, never a refund
             ResultURL: resultUrl,
             Occasion: txId,
           };

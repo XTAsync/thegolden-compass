@@ -81,3 +81,31 @@ export function failWithdrawal(txId: string, reason: string, allowedFrom: string
 export function completeWithdrawal(txId: string, receipt: string | null) {
   return rpc("complete_withdrawal", { p_tx_id: txId, p_receipt: receipt });
 }
+
+/** Mark a still-pending deposit failed or cancelled, once (PR1 migration, T1). */
+export function failDeposit(txId: string, reason: string, cancelled = false) {
+  return rpc("fail_deposit", { p_tx_id: txId, p_reason: reason, p_cancelled: cancelled });
+}
+
+/** Record a B2C queue-timeout notice. Never refunds or fails the withdrawal (T4). */
+export function recordB2cTimeout(txId: string, detail: string) {
+  return rpc("record_b2c_timeout", { p_tx_id: txId, p_detail: detail });
+}
+
+export type StuckDeposit = { id: string; mpesa_checkout_id: string; amount: number; user_id: string };
+
+/** Claim up to `limit` (max 20) stuck pending deposits for reconcile; overlapping runs never share rows (T5). */
+export async function claimStuckDeposits(limit = 20): Promise<StuckDeposit[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabaseAdmin.rpc as any)("claim_stuck_deposits", { p_limit: limit });
+  if (error) throw new Error(`ledger.claim_stuck_deposits failed: ${error.message}`);
+  return (data ?? []) as StuckDeposit[];
+}
+
+/** Move old unmatched callbacks to the archive table; returns how many moved (T5). */
+export async function archiveOldUnmatchedCallbacks(): Promise<number> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabaseAdmin.rpc as any)("archive_old_unmatched_callbacks", {});
+  if (error) throw new Error(`ledger.archive_old_unmatched_callbacks failed: ${error.message}`);
+  return Number(data ?? 0);
+}

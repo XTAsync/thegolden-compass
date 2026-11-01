@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:sql": "bash scripts/test-sql.sh",
+    "test:concurrency": "bash scripts/test-concurrency.sh"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

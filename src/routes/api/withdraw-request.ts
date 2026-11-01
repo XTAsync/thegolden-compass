@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { rateLimit } from "@/lib/rate-limit.server";
+import { normaliseKenyanPhone } from "@/lib/phone";
 import { authenticateRequest, json } from "@/lib/auth.server";
 import { requireFreshAal2 } from "@/lib/mfa.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
@@ -41,11 +42,8 @@ export const Route = createFileRoute("/api/withdraw-request")({
             return json({ error: "Invalid input" }, 400);
 
           const phoneRaw = String(body.phone ?? "").replace(/\D/g, "");
-          let phone = phoneRaw;
-          if (phone.startsWith("0")) phone = "254" + phone.slice(1);
-          else if (phone.startsWith("7") || phone.startsWith("1")) phone = "254" + phone;
-          if (!/^254(7|1)\d{8}$/.test(phone))
-            return json({ error: "Invalid M-Pesa phone number" }, 400);
+          const phone = normaliseKenyanPhone(phoneRaw);
+          if (!phone) return json({ error: "Invalid M-Pesa phone number" }, 400);
 
           // Compliance caps (placeholder thresholds - TBD).
           const limit = await checkTransactionLimit(userId, "withdrawal", amount);

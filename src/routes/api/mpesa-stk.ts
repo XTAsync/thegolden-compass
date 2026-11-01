@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { rateLimit } from "@/lib/rate-limit.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { normaliseKenyanPhone } from "@/lib/phone";
 import { authenticateRequest, json } from "@/lib/auth.server";
 import { getMpesaUrls } from "@/lib/mpesa-config.server";
+import { getDarajaToken } from "@/lib/daraja-token.server";
 import { checkTransactionLimit } from "@/lib/limits.server";
 import { screenTransaction } from "@/lib/aml.server";
 import { isMpesaLiveEnabled } from "@/lib/config.server";
 import { withCallbackSecret, mayStartMpesaPayment } from "@/lib/mpesa-security.server";
-import { attachCheckoutId } from "@/lib/ledger.server";
+import { attachCheckoutId, failDeposit } from "@/lib/ledger.server";
 
 // Initiate an M-Pesa STK Push for a deposit. Authenticated users only.
 // Body: { amount: number, pool_id: string, phone: string }
@@ -33,10 +35,8 @@ export const Route = createFileRoute("/api/mpesa-stk")({
           if (!amount || amount < 1) return json({ error: "Amount must be at least KES 1" }, 400);
           if (amount > 150_000) return json({ error: "Amount exceeds M-Pesa limit of KES 150,000" }, 400);
           // Normalize phone
-          let phone = phoneRaw;
-          if (phone.startsWith("0")) phone = "254" + phone.slice(1);
-          else if (phone.startsWith("7") || phone.startsWith("1")) phone = "254" + phone;
-          if (!/^254(7|1)\d{8}$/.test(phone)) return json({ error: "Invalid Kenyan phone number" }, 400);
+          const phone = normaliseKenyanPhone(phoneRaw);
+          if (!phone) return json({ error: "Invalid Kenyan phone number" }, 400);
 
           // Compliance caps (placeholder thresholds — TBD).
           const limit = await checkTransactionLimit(userId, "deposit", amount);
@@ -65,12 +65,12 @@ export const Route = createFileRoute("/api/mpesa-stk")({
 
           // OAuth token
           const mpesaUrls = getMpesaUrls();
-          const tokenRes = await fetch(
-            mpesaUrls.oauth,
-            { headers: { Authorization: "Basic " + btoa(`${consumerKey}:${consumerSecret}`) } }
-          );
-          if (!tokenRes.ok) return json({ error: "M-Pesa auth failed" }, 502);
-          const { access_token } = (await tokenRes.json()) as { access_token: string };
+          let access_token: string;
+          try {
+            access_token = await getDarajaToken(consumerKey, consumerSecret);
+          } catch {
+            return json({ error: "M-Pesa auth failed" }, 502);
+          }
 
           const ts = new Date()
             .toISOString()
@@ -125,10 +125,7 @@ export const Route = createFileRoute("/api/mpesa-stk")({
             const reason =
               stkData.errorMessage || stkData.ResponseDescription || "STK Push failed";
             console.error("[mpesa-stk] failure", { status: stkRes.status, body: stkData });
-            await supabaseAdmin
-              .from("transactions")
-              .update({ status: "failed", mpesa_reference: `STK: ${reason}`.slice(0, 200) })
-              .eq("id", tx.id);
+            await failDeposit(tx.id, `STK: ${reason}`);
             return json({ error: reason }, 502);
           }
 

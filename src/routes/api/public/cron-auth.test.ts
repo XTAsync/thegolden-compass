@@ -8,6 +8,14 @@ vi.mock("@/lib/reconcile.server", () => ({
   reconcileStuckDeposits: vi.fn(async () => ({ claimed: 0 })),
 }));
 
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: { rpc: vi.fn(async () => ({ data: 0, error: null })) },
+}));
+vi.mock("@/lib/ops-alerts.server", () => ({
+  enqueueOpsEvent: vi.fn(async () => {}),
+  drainOpsOutbox: vi.fn(async () => ({ sent: 0, failed: 0 })),
+}));
+
 const SECRET = "s".repeat(32);
 
 async function call(path: "check-price-alerts" | "reconcile-deposits", headers: Record<string, string>) {

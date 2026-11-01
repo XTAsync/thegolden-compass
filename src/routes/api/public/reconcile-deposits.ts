@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { constantTimeEqual, MIN_SECRET_LENGTH } from "@/lib/mpesa-security.server";
 import { defaultDeps, reconcileStuckDeposits } from "@/lib/reconcile.server";
+import { drainOpsOutbox, enqueueOpsEvent } from "@/lib/ops-alerts.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Scheduled reconcile of stuck pending deposits. Call every minute (pg_cron + pg_net):
 //   POST /api/public/reconcile-deposits   header: x-cron-secret: <RECONCILE_CRON_SECRET>
@@ -18,7 +20,14 @@ export const Route = createFileRoute("/api/public/reconcile-deposits")({
         }
         try {
           const summary = await reconcileStuckDeposits(defaultDeps());
-          return Response.json({ ok: true, ...summary, ran_at: new Date().toISOString() });
+          if (summary.held_for_review > 0 || summary.errors > 0) {
+            await enqueueOpsEvent("reconcile_attention", summary, `reconcile:${new Date().toISOString().slice(0, 16)}`);
+          }
+          // Stuck-withdrawal scan (once per withdrawal per day) and alert delivery ride on the same cron.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabaseAdmin.rpc as any)("enqueue_stuck_withdrawals", { p_minutes: 30 });
+          const alerts = await drainOpsOutbox();
+          return Response.json({ ok: true, ...summary, alerts, ran_at: new Date().toISOString() });
         } catch (e) {
           console.error("[reconcile] run failed", e);
           return Response.json({ error: "Reconcile failed" }, { status: 500 });

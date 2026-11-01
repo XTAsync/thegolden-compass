@@ -14,6 +14,7 @@ no pause switch and no ops alerts, so PR1 must never run with live M-Pesa enable
 - [ ] `MPESA_CALLBACK_SECRET` set, at least 24 characters
 - [ ] `ALERTS_CRON_SECRET` set, at least 24 characters, different from every other secret (price-alert cron; header `x-cron-secret`)
 - [ ] `RECONCILE_CRON_SECRET` set, at least 24 characters (reconcile cron; header `x-cron-secret`)
+- [ ] `OPS_WEBHOOK_URL` set (Slack or Discord webhook); send a test pause-flag flip and see the alert arrive
 - [ ] `MPESA_SANDBOX_ENABLED` is NOT set on Production
 - [ ] Safaricom B2C result URL and queue-timeout URL registered: `/api/mpesa-b2c-result` and `/api/mpesa-b2c-timeout`
 

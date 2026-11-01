@@ -12,6 +12,8 @@ export interface PoolHolding {
   value: number;
   exit_fee_percent: number;
   holding_period_days: number;
+  /** ISO time the holding unlocks (first investment + holding period), or null when never locked. */
+  unlocks_at: string | null;
 }
 
 export interface AccountSummary {
@@ -19,6 +21,7 @@ export interface AccountSummary {
   fullName: string;
   firstName: string;
   kycStatus: string;
+  phone: string;
   wallet: number;
   invested: number;
   poolsValue: number;
@@ -31,6 +34,12 @@ export interface AccountSummary {
   refresh: () => void;
 }
 
+/** First investment + holding period. A top-up never moves it (DR2). */
+export function unlockAt(createdAt: string | null | undefined, days: number): string | null {
+  if (!createdAt || !(days > 0)) return null;
+  return new Date(new Date(createdAt).getTime() + days * 86_400_000).toISOString();
+}
+
 export const KES = (n: number) =>
   "KES " + Number(n).toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -40,6 +49,7 @@ export function useAccountSummary(): AccountSummary {
   const [loading, setLoading] = useState(true);
   const [fullName, setFullName] = useState("Investor");
   const [kycStatus, setKycStatus] = useState("not_started");
+  const [phone, setPhone] = useState("");
   const [wallet, setWallet] = useState(0);
   const [poolHoldings, setPoolHoldings] = useState<PoolHolding[]>([]);
   const [stocksInvested, setStocksInvested] = useState(0);
@@ -50,11 +60,11 @@ export function useAccountSummary(): AccountSummary {
     let cancelled = false;
     (async () => {
       const [{ data: profile }, { data: pools }, { data: stocks }] = await Promise.all([
-        supabase.from("profiles").select("full_name, kyc_status, wallet_balance").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, kyc_status, wallet_balance, phone").eq("id", user.id).maybeSingle(),
         supabase
           .from("user_investments")
           .select(
-            "id, pool_id, invested_amount, current_value, units_owned, investment_pools(name, pool_type, exit_fee_percent, holding_period_days)",
+            "id, pool_id, invested_amount, current_value, units_owned, created_at, investment_pools(name, pool_type, exit_fee_percent, holding_period_days)",
           )
           .eq("user_id", user.id),
         supabase.from("stock_holdings").select("id, invested_amount, quantity").eq("user_id", user.id),
@@ -64,6 +74,7 @@ export function useAccountSummary(): AccountSummary {
       if (profile?.full_name) setFullName(profile.full_name);
       setKycStatus(profile?.kyc_status ?? "not_started");
       setWallet(Number(profile?.wallet_balance ?? 0));
+      setPhone(String((profile as { phone?: string | null } | null)?.phone ?? ""));
 
       setPoolHoldings(
         ((pools ?? []) as unknown as Array<Record<string, any>>).map((p) => ({
@@ -76,6 +87,7 @@ export function useAccountSummary(): AccountSummary {
           value: Number(p.current_value ?? 0),
           exit_fee_percent: Number(p.investment_pools?.exit_fee_percent ?? 0),
           holding_period_days: Number(p.investment_pools?.holding_period_days ?? 0),
+          unlocks_at: unlockAt(p.created_at, Number(p.investment_pools?.holding_period_days ?? 0)),
         })),
       );
 
@@ -101,6 +113,7 @@ export function useAccountSummary(): AccountSummary {
     fullName,
     firstName: fullName.split(" ")[0] || "Investor",
     kycStatus,
+    phone,
     wallet,
     invested,
     poolsValue,

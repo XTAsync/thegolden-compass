@@ -2,11 +2,13 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useAccountSummary, KES, type PoolHolding } from "@/hooks/useAccountSummary";
+import { useAccountSummary, KES } from "@/hooks/useAccountSummary";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { TiltCard } from "@/components/TiltCard";
 import { WalletDepositModal } from "@/components/WalletDepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
+import { StatusChip } from "@/components/StatusChip";
+import { useMoneyConfig } from "@/hooks/useMoneyConfig";
 import { ArrowDownLeft, ArrowUpRight, Smartphone, Receipt, PiggyBank } from "lucide-react";
 
 export const Route = createFileRoute("/pocket")({
@@ -38,21 +40,14 @@ interface TxRow {
   mpesa_reference: string | null;
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  pending: "var(--gc-warning)",
-  confirmed: "var(--gc-success)",
-  failed: "var(--gc-danger)",
-  cancelled: "var(--gc-danger)",
-};
-
 function PocketPage() {
   const { user, loading: authLoading } = useAuth();
   const s = useAccountSummary();
   const [txs, setTxs] = useState<TxRow[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
   const [showDeposit, setShowDeposit] = useState(false);
-  const [withdrawTarget, setWithdrawTarget] = useState<PoolHolding | null>(null);
-  const [pickWithdraw, setPickWithdraw] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const money = useMoneyConfig({}, !!user);
 
   useEffect(() => {
     if (!user) return;
@@ -75,8 +70,6 @@ function PocketPage() {
 
   if (authLoading) return null;
   if (!user) return <Navigate to="/login" />;
-
-  const withdrawable = s.poolHoldings.filter((p) => p.value > 0);
 
   return (
     <div className="flex flex-col gap-5 px-5 pt-6 pb-28 anim-fade-up">
@@ -102,9 +95,26 @@ function PocketPage() {
               <AnimatedNumber value={s.wallet} format={KES} />
             </h2>
           )}
-          <p className="t-mono t-muted mt-1" style={{ fontSize: 9, letterSpacing: "0.12em" }}>
+          <p className="t-label mt-1">
             AVAILABLE TO INVEST OR TRADE
           </p>
+
+          {/* Status lines appear only when there is something to say (design D3). */}
+          <div className="mt-2 space-y-1" aria-live="polite">
+            {money.data?.paused.withdrawals && (
+              <p className="t-label" style={{ color: "#F5B041" }}>Withdrawals are paused for a moment. Your money is safe.</p>
+            )}
+            {(money.data?.pending.withdrawals_pending ?? 0) > 0 && (
+              <p className="t-label">
+                {KES(money.data!.pending.withdrawals_pending)} on its way to your M-Pesa. Usually within 24 hours.
+              </p>
+            )}
+            {(money.data?.pending.deposits_pending ?? 0) > 0 && (
+              <p className="t-label">
+                {KES(money.data!.pending.deposits_pending)} deposit still being confirmed.
+              </p>
+            )}
+          </div>
 
           <div className="mt-5 grid grid-cols-2 gap-2">
             <button
@@ -115,7 +125,7 @@ function PocketPage() {
               <ArrowDownLeft size={15} /> DEPOSIT
             </button>
             <button
-              onClick={() => setPickWithdraw((v) => !v)}
+              onClick={() => setShowWithdraw(true)}
               className="glass rounded-[10px] flex items-center justify-center gap-1.5 t-gold border-none cursor-pointer"
               style={{ fontFamily: "var(--font-display)", letterSpacing: "0.08em", fontSize: 11, padding: "13px 10px" }}
             >
@@ -123,36 +133,6 @@ function PocketPage() {
             </button>
           </div>
 
-          {pickWithdraw && (
-            <div className="mt-3 glass rounded-xl p-3">
-              <p className="t-mono t-sec" style={{ fontSize: 9, letterSpacing: "0.14em" }}>
-                SELECT A HOLDING TO WITHDRAW FROM
-              </p>
-              {withdrawable.length === 0 ? (
-                <p className="t-serif t-muted mt-2" style={{ fontSize: 12 }}>
-                  No withdrawable pool holdings yet.
-                </p>
-              ) : (
-                <div className="mt-2 flex flex-col gap-2">
-                  {withdrawable.map((h) => (
-                    <button
-                      key={h.id}
-                      onClick={() => setWithdrawTarget(h)}
-                      className="glass rounded-lg flex items-center justify-between border-none cursor-pointer"
-                      style={{ padding: "10px 12px" }}
-                    >
-                      <span className="t-serif t-parch" style={{ fontSize: 13 }}>
-                        {h.name}
-                      </span>
-                      <span className="t-mono t-gold" style={{ fontSize: 11 }}>
-                        {KES(h.value)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </TiltCard>
 
@@ -245,12 +225,7 @@ function PocketPage() {
                       {isCredit ? "+" : "−"}
                       {KES(Number(tx.amount))}
                     </p>
-                    <span
-                      className="t-mono"
-                      style={{ fontSize: 8, letterSpacing: "0.12em", color: STATUS_COLOR[tx.status ?? "pending"] ?? "var(--gold-300)" }}
-                    >
-                      {(tx.status ?? "pending").toUpperCase()}
-                    </span>
+                    <StatusChip status={tx.status} />
                   </div>
                 </div>
               );
@@ -259,17 +234,13 @@ function PocketPage() {
         )}
       </section>
 
-      {showDeposit && <WalletDepositModal onClose={() => setShowDeposit(false)} onSuccess={s.refresh} />}
-      {withdrawTarget && (
+      {showDeposit && <WalletDepositModal phone={s.phone} onClose={() => setShowDeposit(false)} onSuccess={s.refresh} />}
+      {showWithdraw && (
         <WithdrawModal
-          holding={{
-            pool_id: withdrawTarget.pool_id,
-            pool_name: withdrawTarget.name,
-            current_value: withdrawTarget.value,
-            exit_fee_percent: withdrawTarget.exit_fee_percent,
-            holding_period_days: withdrawTarget.holding_period_days,
-          }}
-          onClose={() => setWithdrawTarget(null)}
+          wallet={s.wallet}
+          phone={s.phone}
+          holdings={s.poolHoldings}
+          onClose={() => setShowWithdraw(false)}
           onSuccess={s.refresh}
         />
       )}

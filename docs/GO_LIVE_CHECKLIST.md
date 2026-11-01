@@ -34,10 +34,11 @@ no pause switch and no ops alerts, so PR1 must never run with live M-Pesa enable
 - [ ] **Wallet withdrawal fee (DR4):** none at launch (the business absorbs the Safaricom payout cost).
 - [ ] **Payout promise (U3):** the app says "Usually within 24 hours". Confirm operations can meet it.
 - [ ] **Pool holding periods, exit fees and minimums** reviewed by Mike
-- [ ] Daily withdrawal caps and per-user limits set to real numbers (the current ones are placeholders)
+- [ ] Real values set in `app_config` (placeholders today): `withdraw_min_kes` (100), `withdraw_cap_user_daily` (100000), `withdraw_cap_global_daily` (1000000), `wallet_withdraw_fee_percent` (0), and the per-user limits table
 
 ## 6. Operations
 - [ ] At least two admins exist (an admin cannot approve their own withdrawal)
 - [ ] Someone owns the "Needs review" list (deposits Safaricom says were paid but have no receipt) and checks it daily
 - [ ] Someone owns stuck withdrawals (status processing for more than 30 minutes) and reconciles them against the M-Pesa statement before any refund
-- [ ] Pause switch tested once end to end
+- [ ] Pause switch tested once end to end: set `withdrawals_paused` to true in `app_config`, see the sheet show the paused message, see the alert arrive, set it back
+- [ ] Screens checked by a person on a real phone at 360 px width (not yet done; the new sheets were only type-checked)

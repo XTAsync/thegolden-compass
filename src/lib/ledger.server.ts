@@ -160,3 +160,8 @@ export async function archiveOldUnmatchedCallbacks(): Promise<number> {
   if (error) throw new Error(`ledger.archive_old_unmatched_callbacks failed: ${error.message}`);
   return Number(data ?? 0);
 }
+
+/** An admin resolves a held (paid, no receipt) deposit with the receipt from the M-Pesa statement (D10). */
+export function resolveHeldDeposit(txId: string, receipt: string, adminId: string) {
+  return rpc("resolve_held_deposit", { p_tx_id: txId, p_receipt: receipt, p_admin_id: adminId });
+}

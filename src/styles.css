@@ -867,3 +867,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Money sheets (design decisions D16/D17): readable labels and status text, 44px touch targets. */
+.t-label { font-family: var(--font-mono, monospace); font-size: 12px; letter-spacing: 0.06em; color: rgba(232, 215, 180, 0.88); }
+.t-status { font-size: 14px; font-weight: 600; }
+.tap44 { min-height: 44px; min-width: 44px; }
+.money-error { color: #ff8a73; font-size: 14px; }

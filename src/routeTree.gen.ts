@@ -35,6 +35,7 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminTransactionsRouteImport } from './routes/admin.transactions'
+import { Route as ApiAdminResolveDepositRouteImport } from './routes/api/admin-resolve-deposit'
 import { Route as ApiCandlesRouteImport } from './routes/api/candles'
 import { Route as ApiCapabilitiesRouteImport } from './routes/api/capabilities'
 import { Route as ApiFeesRouteImport } from './routes/api/fees'
@@ -191,6 +192,11 @@ const AdminTransactionsRoute = AdminTransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiAdminResolveDepositRoute = ApiAdminResolveDepositRouteImport.update({
+  id: '/api/admin-resolve-deposit',
+  path: '/api/admin-resolve-deposit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCandlesRoute = ApiCandlesRouteImport.update({
   id: '/api/candles',
   path: '/api/candles',
@@ -337,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
+  '/api/admin-resolve-deposit': typeof ApiAdminResolveDepositRoute
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
@@ -388,6 +395,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
+  '/api/admin-resolve-deposit': typeof ApiAdminResolveDepositRoute
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
@@ -440,6 +448,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
+  '/api/admin-resolve-deposit': typeof ApiAdminResolveDepositRoute
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
@@ -493,6 +502,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/kyc'
     | '/admin/transactions'
+    | '/api/admin-resolve-deposit'
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
@@ -544,6 +554,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/kyc'
     | '/admin/transactions'
+    | '/api/admin-resolve-deposit'
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
@@ -595,6 +606,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/kyc'
     | '/admin/transactions'
+    | '/api/admin-resolve-deposit'
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
@@ -645,6 +657,7 @@ export interface RootRouteChildren {
   TradeRoute: typeof TradeRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiAdminResolveDepositRoute: typeof ApiAdminResolveDepositRoute
   ApiCandlesRoute: typeof ApiCandlesRoute
   ApiCapabilitiesRoute: typeof ApiCapabilitiesRoute
   ApiFeesRoute: typeof ApiFeesRoute
@@ -854,6 +867,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTransactionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/admin-resolve-deposit': {
+      id: '/api/admin-resolve-deposit'
+      path: '/api/admin-resolve-deposit'
+      fullPath: '/api/admin-resolve-deposit'
+      preLoaderRoute: typeof ApiAdminResolveDepositRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/candles': {
       id: '/api/candles'
       path: '/api/candles'
@@ -1056,6 +1076,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiAdminResolveDepositRoute: ApiAdminResolveDepositRoute,
   ApiCandlesRoute: ApiCandlesRoute,
   ApiCapabilitiesRoute: ApiCapabilitiesRoute,
   ApiFeesRoute: ApiFeesRoute,

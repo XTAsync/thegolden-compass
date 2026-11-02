@@ -41,4 +41,4 @@ no pause switch and no ops alerts, so PR1 must never run with live M-Pesa enable
 - [ ] Someone owns the "Needs review" list (deposits Safaricom says were paid but have no receipt) and checks it daily
 - [ ] Someone owns stuck withdrawals (status processing for more than 30 minutes) and reconciles them against the M-Pesa statement before any refund
 - [ ] Pause switch tested once end to end: set `withdrawals_paused` to true in `app_config`, see the sheet show the paused message, see the alert arrive, set it back
-- [ ] Screens checked by a person on a real phone at 360 px width (not yet done; the new sheets were only type-checked)
+- [ ] Screens checked by a person on a real phone at 360 px width (checked so far only in a desktop browser at 360x640 with fake data, not against the real backend)

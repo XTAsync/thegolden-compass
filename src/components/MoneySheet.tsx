@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 interface Props {
   title: string;
@@ -42,10 +43,12 @@ export function MoneySheet({ title, eyebrow, onClose, locked, footer, liveMessag
     return () => document.removeEventListener("keydown", onKey);
   }, [locked, onClose]);
 
-  return (
+  // Rendered on document.body: a transformed ancestor (the page's fade-up animation) would otherwise
+  // become the containing block of `fixed` and push the sheet and its button off the screen.
+  const node = (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+      className="fixed inset-0 flex items-end justify-center"
+      style={{ zIndex: 1000, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)" }}
       onClick={() => { if (!locked) onClose(); }}
     >
       <div
@@ -54,7 +57,7 @@ export function MoneySheet({ title, eyebrow, onClose, locked, footer, liveMessag
         aria-modal="true"
         aria-label={title}
         className="glass-gold w-full max-w-[430px] rounded-t-3xl anim-fade-up flex flex-col"
-        style={{ maxHeight: "92vh" }}
+        style={{ maxHeight: "92vh", background: "linear-gradient(180deg, #1c1709 0%, #110e06 100%)", border: "1px solid rgba(212,175,55,0.35)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between px-6 pt-6 pb-3">
@@ -73,9 +76,10 @@ export function MoneySheet({ title, eyebrow, onClose, locked, footer, liveMessag
           </button>
         </div>
         <div className="px-6 overflow-y-auto" style={{ flex: "1 1 auto" }}>{children}</div>
-        {footer && <div className="px-6 pt-3 pb-6">{footer}</div>}
+        {footer && <div className="px-6 pt-3" style={{ paddingBottom: "max(24px, env(safe-area-inset-bottom))" }}>{footer}</div>}
         <div role="status" aria-live="polite" className="sr-only">{liveMessage}</div>
       </div>
     </div>
   );
+  return typeof document === "undefined" ? null : createPortal(node, document.body);
 }

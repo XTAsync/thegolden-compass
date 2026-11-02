@@ -110,6 +110,17 @@ export function WithdrawModal({ wallet, phone: savedPhone, holdings, initialSour
       liveMessage={blocker || changed || error}
       footer={
         <>
+          <div className="glass rounded-lg px-4 py-2 mb-2 flex items-center justify-between" aria-live="polite">
+            <div>
+              <p className="t-label">You receive</p>
+              <p className="t-label">
+                {amt <= 0 ? "Enter an amount." : cfg.stale && !cfg.error ? "Updating…" : quote?.fee != null ? (quote.fee > 0 ? `Fee ${kes(quote.fee)}` : "No fee") : ""}
+              </p>
+            </div>
+            <p className="t-display t-gold" style={{ fontSize: 28, opacity: cfg.stale ? 0.5 : 1 }}>
+              {quote?.net != null && amt > 0 ? kes(quote.net) : "KES 0"}
+            </p>
+          </div>
           {(blocker || error) && <p className="money-error mb-2" role="alert">{error || blocker}</p>}
           {cfg.error && <button onClick={cfg.retry} className="t-gold tap44 mb-2 underline" style={{ fontSize: 14 }}>Try again</button>}
           <button onClick={submit} disabled={!canSubmit} className="btn-brass w-full tap44"
@@ -143,15 +154,6 @@ export function WithdrawModal({ wallet, phone: savedPhone, holdings, initialSour
         Use all {kes(available)}
       </button>
 
-      <div className="glass rounded-lg p-4 my-3" aria-live="polite">
-        <p className="t-label">You receive</p>
-        <p className="t-display t-gold" style={{ fontSize: 32, opacity: cfg.stale ? 0.5 : 1 }}>
-          {quote?.net != null && amt > 0 ? kes(quote.net) : "KES 0"}
-        </p>
-        <p className="t-label mt-1">
-          {amt <= 0 ? "Enter an amount." : cfg.stale && !cfg.error ? "Updating…" : quote?.fee != null ? (quote.fee > 0 ? `Fee ${kes(quote.fee)}` : "No fee") : ""}
-        </p>
-      </div>
       {changed && <p className="money-error mb-2" role="alert">{changed}</p>}
 
       <label htmlFor="wd-phone" className="t-label block mb-1">M-Pesa phone for the payout</label>

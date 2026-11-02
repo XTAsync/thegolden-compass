@@ -28,7 +28,10 @@ export function WalletDepositModal({ phone: savedPhone = "", onClose, onSuccess 
   const [error, setError] = useState("");
   const [phase, setPhase] = useState<Phase>({ kind: "form" });
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => {
+    alive.current = true;
+    return () => { alive.current = false; };
+  }, []);
 
   const amt = amount === "" ? 0 : Number(amount);
   const phoneOk = /^(?:\+?254|0)?[71]\d{8}$/.test(phone.replace(/\s/g, ""));

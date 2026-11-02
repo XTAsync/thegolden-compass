@@ -165,3 +165,15 @@ export async function archiveOldUnmatchedCallbacks(): Promise<number> {
 export function resolveHeldDeposit(txId: string, receipt: string, adminId: string) {
   return rpc("resolve_held_deposit", { p_tx_id: txId, p_receipt: receipt, p_admin_id: adminId });
 }
+
+export type LedgerCheck = { chain: { ok: boolean; [k: string]: unknown }; balances: { ok: boolean; [k: string]: unknown } };
+
+/** Audit-trail integrity (E5): recent hash chain plus wallet balances against the last audited value. */
+export async function verifyLedger(lastRows = 2000): Promise<LedgerCheck> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rp = supabaseAdmin.rpc as any;
+  const [c, b] = await Promise.all([rp("verify_ledger_chain", { p_last: lastRows }), rp("verify_wallet_balances", {})]);
+  if (c.error) throw new Error(`ledger.verify_ledger_chain failed: ${c.error.message}`);
+  if (b.error) throw new Error(`ledger.verify_wallet_balances failed: ${b.error.message}`);
+  return { chain: c.data, balances: b.data };
+}

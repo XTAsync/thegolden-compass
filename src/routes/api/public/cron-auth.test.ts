@@ -11,6 +11,9 @@ vi.mock("@/lib/reconcile.server", () => ({
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: { rpc: vi.fn(async () => ({ data: 0, error: null })) },
 }));
+vi.mock("@/lib/ledger.server", () => ({
+  verifyLedger: vi.fn(async () => ({ chain: { ok: true }, balances: { ok: true } })),
+}));
 vi.mock("@/lib/ops-alerts.server", () => ({
   enqueueOpsEvent: vi.fn(async () => {}),
   drainOpsOutbox: vi.fn(async () => ({ sent: 0, failed: 0 })),

@@ -37,43 +37,67 @@ export function WalletDepositModal({ phone: savedPhone = "", onClose, onSuccess 
   const phoneOk = /^(?:\+?254|0)?[71]\d{8}$/.test(phone.replace(/\s/g, ""));
   const canSend = !busy && amt >= 1 && phoneOk && phase.kind === "form";
 
+  // One status check against our own API (the source of truth for the receipt). Returns true when the
+  // sheet reached an end state. Called by the slow poll and by the realtime nudge.
+  const checkOnce = async (transactionId: string, i: number): Promise<boolean> => {
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    if (!token) return false;
+    try {
+      const res = await fetch("/api/mpesa-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ transaction_id: transactionId }),
+      });
+      const d = (await res.json()) as { status?: string; result_desc?: string; receipt?: string | null };
+      if (!alive.current) return true;
+      if (d.status === "confirmed") {
+        let balance: number | null = null;
+        const uid = sess.session?.user?.id;
+        if (uid) {
+          const { data } = await supabase.from("profiles").select("wallet_balance").eq("id", uid).maybeSingle();
+          balance = data ? Number(data.wallet_balance ?? 0) : null;
+        }
+        setPhase({ kind: "confirmed", receipt: d.receipt ?? null, balance });
+        onSuccess?.();
+        return true;
+      }
+      if (d.status === "failed" || d.status === "cancelled") {
+        setPhase({ kind: "failed", cancelled: d.status === "cancelled", reason: d.result_desc ?? "" });
+        return true;
+      }
+      setPhase({ kind: "waiting", slow: i >= 14, received: /received/i.test(d.result_desc ?? "") });
+    } catch {
+      // keep waiting: a dropped request is not a failed payment
+    }
+    return false;
+  };
+
+  // Realtime tells us the moment our transaction row changes (E3); polling is the fallback, every 4 s
+  // until the realtime channel is subscribed and every 12 s after, so a dead socket never strands the sheet.
   const poll = async (transactionId: string) => {
     setPhase({ kind: "waiting", slow: false, received: false });
-    for (let i = 0; i < 45 && alive.current; i++) {
-      await new Promise((r) => setTimeout(r, 4000));
-      if (!alive.current) return;
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (!token) break;
-      try {
-        const res = await fetch("/api/mpesa-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ transaction_id: transactionId }),
-        });
-        const d = (await res.json()) as { status?: string; result_desc?: string; receipt?: string | null };
-        if (d.status === "confirmed") {
-          let balance: number | null = null;
-          const uid = sess.session?.user?.id;
-          if (uid) {
-            const { data } = await supabase.from("profiles").select("wallet_balance").eq("id", uid).maybeSingle();
-            balance = data ? Number(data.wallet_balance ?? 0) : null;
-          }
-          setPhase({ kind: "confirmed", receipt: d.receipt ?? null, balance });
-          onSuccess?.();
-          return;
-        }
-        if (d.status === "failed" || d.status === "cancelled") {
-          setPhase({ kind: "failed", cancelled: d.status === "cancelled", reason: d.result_desc ?? "" });
-          return;
-        }
-        const received = /received/i.test(d.result_desc ?? "");
-        setPhase({ kind: "waiting", slow: i >= 14, received });
-      } catch {
-        // keep waiting: a dropped request is not a failed payment
+    let live = false;
+    let done = false;
+    const channel = supabase
+      .channel(`deposit-${transactionId}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "transactions", filter: `id=eq.${transactionId}` },
+        () => { if (!done) void checkOnce(transactionId, 0).then((d) => { if (d) done = true; }); })
+      .subscribe((st: string) => { live = st === "SUBSCRIBED"; });
+    try {
+      let elapsed = 0;
+      for (let i = 0; i < 45 && alive.current && !done; i++) {
+        const wait = live ? 12000 : 4000;
+        await new Promise((r) => setTimeout(r, wait));
+        elapsed += wait;
+        if (!alive.current || done) return;
+        if (await checkOnce(transactionId, Math.floor(elapsed / 4000))) { done = true; return; }
+        if (elapsed >= 180000) break;
       }
+      if (alive.current && !done) setPhase({ kind: "waiting", slow: true, received: false });
+    } finally {
+      void supabase.removeChannel(channel);
     }
-    if (alive.current) setPhase({ kind: "waiting", slow: true, received: false });
   };
 
   const send = async () => {

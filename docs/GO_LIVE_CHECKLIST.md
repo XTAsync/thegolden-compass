@@ -22,6 +22,8 @@ no pause switch and no ops alerts, so PR1 must never run with live M-Pesa enable
 - [ ] pg_cron + pg_net call `POST /api/public/reconcile-deposits` every minute with the reconcile secret
 - [ ] pg_cron + pg_net call `POST /api/public/check-price-alerts` with the alerts secret
 - [ ] Cadence verified by looking at two consecutive runs in the logs
+- [ ] Realtime is enabled for `transactions` (migration 20261103130000); the deposit sheet shows success within seconds of the callback, and still works with Realtime off (12 s poll)
+- [ ] Ledger audit check: `select verify_ledger_chain(); select verify_wallet_balances();` both return ok true; the reconcile cron alerts on `ledger_integrity_failed`
 
 ## 4. Sandbox proof (T6, needs Safaricom sandbox credentials)
 - [ ] One real sandbox STK push and callback captured as a fixture

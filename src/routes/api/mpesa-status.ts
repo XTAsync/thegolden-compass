@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/mpesa-status")({
 
           const { data: tx } = await supabaseAdmin
             .from("transactions")
-            .select("id, user_id, pool_id, amount, status, type, mpesa_checkout_id")
+            .select("id, user_id, pool_id, amount, status, type, mpesa_checkout_id, mpesa_reference")
             .eq("id", txId)
             .maybeSingle();
 
@@ -30,7 +30,10 @@ export const Route = createFileRoute("/api/mpesa-status")({
 
           // Already settled — return current state
           if (tx.status === "confirmed" || tx.status === "failed" || tx.status === "cancelled") {
-            return json({ status: tx.status });
+            return json({
+              status: tx.status,
+              receipt: tx.status === "confirmed" ? (tx.mpesa_reference ?? null) : null,
+            });
           }
 
           if (!tx.mpesa_checkout_id) {

@@ -99,6 +99,8 @@ export const Route = createFileRoute("/api/withdraw-approve")({
               return json({ error: "Not a withdrawal" }, 400);
             case "forbidden":
               return json({ error: "Forbidden: admin only" }, 403);
+            case "paused":
+              return json({ error: "Withdrawals are paused. Unpause before approving." }, 503);
             case "self_approval":
               return json(
                 { error: "You cannot approve your own withdrawal. Ask another admin." },

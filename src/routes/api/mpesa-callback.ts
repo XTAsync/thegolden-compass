@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { json } from "@/lib/auth.server";
 import { verifySafaricomOrigin } from "@/lib/mpesa-security.server";
 import { confirmDeposit, queueUnmatchedCallback } from "@/lib/ledger.server";
+import { enqueueOpsEvent, rejectedCallbackKey } from "@/lib/ops-alerts.server";
 
 // Public callback Safaricom POSTs to after an STK push. Authenticated by the secret in the URL
 // (see mpesa-security.server.ts). Body shape:
@@ -15,6 +16,8 @@ export const Route = createFileRoute("/api/mpesa-callback")({
     handlers: {
       POST: async ({ request }) => {
         if (!verifySafaricomOrigin(request)) {
+          // At most one alert per hour, so a hostile caller cannot flood the webhook. Not awaited.
+          void enqueueOpsEvent("callback_rejected", {}, rejectedCallbackKey());
           return new Response("Forbidden", { status: 403 });
         }
 

@@ -35,9 +35,11 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminTransactionsRouteImport } from './routes/admin.transactions'
+import { Route as ApiAdminResolveDepositRouteImport } from './routes/api/admin-resolve-deposit'
 import { Route as ApiCandlesRouteImport } from './routes/api/candles'
 import { Route as ApiCapabilitiesRouteImport } from './routes/api/capabilities'
 import { Route as ApiFeesRouteImport } from './routes/api/fees'
+import { Route as ApiMoneyConfigRouteImport } from './routes/api/money-config'
 import { Route as ApiMpesaB2cResultRouteImport } from './routes/api/mpesa-b2c-result'
 import { Route as ApiMpesaB2cTimeoutRouteImport } from './routes/api/mpesa-b2c-timeout'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api/mpesa-callback'
@@ -190,6 +192,11 @@ const AdminTransactionsRoute = AdminTransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiAdminResolveDepositRoute = ApiAdminResolveDepositRouteImport.update({
+  id: '/api/admin-resolve-deposit',
+  path: '/api/admin-resolve-deposit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCandlesRoute = ApiCandlesRouteImport.update({
   id: '/api/candles',
   path: '/api/candles',
@@ -203,6 +210,11 @@ const ApiCapabilitiesRoute = ApiCapabilitiesRouteImport.update({
 const ApiFeesRoute = ApiFeesRouteImport.update({
   id: '/api/fees',
   path: '/api/fees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMoneyConfigRoute = ApiMoneyConfigRouteImport.update({
+  id: '/api/money-config',
+  path: '/api/money-config',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMpesaB2cResultRoute = ApiMpesaB2cResultRouteImport.update({
@@ -331,9 +343,11 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
+  '/api/admin-resolve-deposit': typeof ApiAdminResolveDepositRoute
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
+  '/api/money-config': typeof ApiMoneyConfigRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -381,9 +395,11 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
+  '/api/admin-resolve-deposit': typeof ApiAdminResolveDepositRoute
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
+  '/api/money-config': typeof ApiMoneyConfigRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -432,9 +448,11 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/transactions': typeof AdminTransactionsRoute
+  '/api/admin-resolve-deposit': typeof ApiAdminResolveDepositRoute
   '/api/candles': typeof ApiCandlesRoute
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
+  '/api/money-config': typeof ApiMoneyConfigRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
   '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
@@ -484,9 +502,11 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/kyc'
     | '/admin/transactions'
+    | '/api/admin-resolve-deposit'
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
+    | '/api/money-config'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
@@ -534,9 +554,11 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/kyc'
     | '/admin/transactions'
+    | '/api/admin-resolve-deposit'
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
+    | '/api/money-config'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
@@ -584,9 +606,11 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin/kyc'
     | '/admin/transactions'
+    | '/api/admin-resolve-deposit'
     | '/api/candles'
     | '/api/capabilities'
     | '/api/fees'
+    | '/api/money-config'
     | '/api/mpesa-b2c-result'
     | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
@@ -633,9 +657,11 @@ export interface RootRouteChildren {
   TradeRoute: typeof TradeRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiAdminResolveDepositRoute: typeof ApiAdminResolveDepositRoute
   ApiCandlesRoute: typeof ApiCandlesRoute
   ApiCapabilitiesRoute: typeof ApiCapabilitiesRoute
   ApiFeesRoute: typeof ApiFeesRoute
+  ApiMoneyConfigRoute: typeof ApiMoneyConfigRoute
   ApiMpesaB2cResultRoute: typeof ApiMpesaB2cResultRoute
   ApiMpesaB2cTimeoutRoute: typeof ApiMpesaB2cTimeoutRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
@@ -841,6 +867,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTransactionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/admin-resolve-deposit': {
+      id: '/api/admin-resolve-deposit'
+      path: '/api/admin-resolve-deposit'
+      fullPath: '/api/admin-resolve-deposit'
+      preLoaderRoute: typeof ApiAdminResolveDepositRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/candles': {
       id: '/api/candles'
       path: '/api/candles'
@@ -860,6 +893,13 @@ declare module '@tanstack/react-router' {
       path: '/api/fees'
       fullPath: '/api/fees'
       preLoaderRoute: typeof ApiFeesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/money-config': {
+      id: '/api/money-config'
+      path: '/api/money-config'
+      fullPath: '/api/money-config'
+      preLoaderRoute: typeof ApiMoneyConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/mpesa-b2c-result': {
@@ -1036,9 +1076,11 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiAdminResolveDepositRoute: ApiAdminResolveDepositRoute,
   ApiCandlesRoute: ApiCandlesRoute,
   ApiCapabilitiesRoute: ApiCapabilitiesRoute,
   ApiFeesRoute: ApiFeesRoute,
+  ApiMoneyConfigRoute: ApiMoneyConfigRoute,
   ApiMpesaB2cResultRoute: ApiMpesaB2cResultRoute,
   ApiMpesaB2cTimeoutRoute: ApiMpesaB2cTimeoutRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,

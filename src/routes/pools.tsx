@@ -183,9 +183,11 @@ function PoolsPage() {
             id: depositPool.id,
             name: depositPool.name,
             min_investment: depositPool.min_investment,
+            holding_period_days: depositPool.holding_period_days,
+            exit_fee_percent: depositPool.exit_fee_percent,
           }}
           onClose={() => setDepositPool(null)}
-          onSuccess={() => setDepositPool(null)}
+          onSuccess={() => undefined}
         />
       )}
     </div>

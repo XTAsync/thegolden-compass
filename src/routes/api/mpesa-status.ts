@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { authenticateRequest, json } from "@/lib/auth.server";
 import { getMpesaUrls } from "@/lib/mpesa-config.server";
+import { getDarajaToken } from "@/lib/daraja-token.server";
 
 // Query M-Pesa STK Push status for a transaction.
 // Body: { transaction_id: string }
@@ -47,12 +48,12 @@ export const Route = createFileRoute("/api/mpesa-status")({
 
           // OAuth token
           const mpesaUrls = getMpesaUrls();
-          const tokenRes = await fetch(
-            mpesaUrls.oauth,
-            { headers: { Authorization: "Basic " + btoa(`${consumerKey}:${consumerSecret}`) } },
-          );
-          if (!tokenRes.ok) return json({ status: "pending" });
-          const { access_token } = (await tokenRes.json()) as { access_token: string };
+          let access_token: string;
+          try {
+            access_token = await getDarajaToken(consumerKey, consumerSecret);
+          } catch {
+            return json({ status: "pending" });
+          }
 
           const ts = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
           const password = btoa(`${shortcode}${passkey}${ts}`);
@@ -89,20 +90,16 @@ export const Route = createFileRoute("/api/mpesa-status")({
 
           const code = queryData.ResultCode;
           if (code === "0") {
-            // Success — callback should also fire, but mark confirmed if not already
-            // (Don't credit units here; callback handles unit math with receipt)
-            return json({ status: "confirmed", result_desc: queryData.ResultDesc });
+            // Safaricom says the customer paid, but only the callback (which carries the receipt)
+            // settles the wallet. Never report "confirmed" until our own record says so.
+            return json({ status: "pending", result_desc: "Payment received, finalising" });
           }
 
-          // Cancelled or failed
+          // Cancelled or failed. This route is READ-ONLY (review decision D5): it reports what
+          // Daraja said so the sheet can show it, but it never writes to `transactions`. Only the
+          // callback (or the reconcile route, on an explicit terminal code) settles a row.
           const isCancelled = code === "1032";
           const newStatus = isCancelled ? "cancelled" : "failed";
-          await supabaseAdmin
-            .from("transactions")
-            .update({ status: newStatus })
-            .eq("id", tx.id)
-            .eq("status", "pending"); // only if still pending
-
           return json({ status: newStatus, result_desc: queryData.ResultDesc });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Unknown error";

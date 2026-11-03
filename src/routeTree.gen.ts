@@ -39,6 +39,7 @@ import { Route as ApiCandlesRouteImport } from './routes/api/candles'
 import { Route as ApiCapabilitiesRouteImport } from './routes/api/capabilities'
 import { Route as ApiFeesRouteImport } from './routes/api/fees'
 import { Route as ApiMpesaB2cResultRouteImport } from './routes/api/mpesa-b2c-result'
+import { Route as ApiMpesaB2cTimeoutRouteImport } from './routes/api/mpesa-b2c-timeout'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api/mpesa-callback'
 import { Route as ApiMpesaStatusRouteImport } from './routes/api/mpesa-status'
 import { Route as ApiMpesaStkRouteImport } from './routes/api/mpesa-stk'
@@ -55,6 +56,7 @@ import { Route as StockSymbolRouteImport } from './routes/stock.$symbol'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicAmlScanRouteImport } from './routes/api/public/aml-scan'
 import { Route as ApiPublicCheckPriceAlertsRouteImport } from './routes/api/public/check-price-alerts'
+import { Route as ApiPublicReconcileDepositsRouteImport } from './routes/api/public/reconcile-deposits'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -208,6 +210,11 @@ const ApiMpesaB2cResultRoute = ApiMpesaB2cResultRouteImport.update({
   path: '/api/mpesa-b2c-result',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMpesaB2cTimeoutRoute = ApiMpesaB2cTimeoutRouteImport.update({
+  id: '/api/mpesa-b2c-timeout',
+  path: '/api/mpesa-b2c-timeout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
   id: '/api/mpesa-callback',
   path: '/api/mpesa-callback',
@@ -290,6 +297,12 @@ const ApiPublicCheckPriceAlertsRoute =
     path: '/api/public/check-price-alerts',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicReconcileDepositsRoute =
+  ApiPublicReconcileDepositsRouteImport.update({
+    id: '/api/public/reconcile-deposits',
+    path: '/api/public/reconcile-deposits',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -322,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
+  '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
   '/api/mpesa-status': typeof ApiMpesaStatusRoute
   '/api/mpesa-stk': typeof ApiMpesaStkRoute
@@ -338,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/aml-scan': typeof ApiPublicAmlScanRoute
   '/api/public/check-price-alerts': typeof ApiPublicCheckPriceAlertsRoute
+  '/api/public/reconcile-deposits': typeof ApiPublicReconcileDepositsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -370,6 +385,7 @@ export interface FileRoutesByTo {
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
+  '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
   '/api/mpesa-status': typeof ApiMpesaStatusRoute
   '/api/mpesa-stk': typeof ApiMpesaStkRoute
@@ -386,6 +402,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/aml-scan': typeof ApiPublicAmlScanRoute
   '/api/public/check-price-alerts': typeof ApiPublicCheckPriceAlertsRoute
+  '/api/public/reconcile-deposits': typeof ApiPublicReconcileDepositsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -419,6 +436,7 @@ export interface FileRoutesById {
   '/api/capabilities': typeof ApiCapabilitiesRoute
   '/api/fees': typeof ApiFeesRoute
   '/api/mpesa-b2c-result': typeof ApiMpesaB2cResultRoute
+  '/api/mpesa-b2c-timeout': typeof ApiMpesaB2cTimeoutRoute
   '/api/mpesa-callback': typeof ApiMpesaCallbackRoute
   '/api/mpesa-status': typeof ApiMpesaStatusRoute
   '/api/mpesa-stk': typeof ApiMpesaStkRoute
@@ -435,6 +453,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/aml-scan': typeof ApiPublicAmlScanRoute
   '/api/public/check-price-alerts': typeof ApiPublicCheckPriceAlertsRoute
+  '/api/public/reconcile-deposits': typeof ApiPublicReconcileDepositsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -469,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/capabilities'
     | '/api/fees'
     | '/api/mpesa-b2c-result'
+    | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
     | '/api/mpesa-status'
     | '/api/mpesa-stk'
@@ -485,6 +505,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/aml-scan'
     | '/api/public/check-price-alerts'
+    | '/api/public/reconcile-deposits'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -517,6 +538,7 @@ export interface FileRouteTypes {
     | '/api/capabilities'
     | '/api/fees'
     | '/api/mpesa-b2c-result'
+    | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
     | '/api/mpesa-status'
     | '/api/mpesa-stk'
@@ -533,6 +555,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/aml-scan'
     | '/api/public/check-price-alerts'
+    | '/api/public/reconcile-deposits'
   id:
     | '__root__'
     | '/'
@@ -565,6 +588,7 @@ export interface FileRouteTypes {
     | '/api/capabilities'
     | '/api/fees'
     | '/api/mpesa-b2c-result'
+    | '/api/mpesa-b2c-timeout'
     | '/api/mpesa-callback'
     | '/api/mpesa-status'
     | '/api/mpesa-stk'
@@ -581,6 +605,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/aml-scan'
     | '/api/public/check-price-alerts'
+    | '/api/public/reconcile-deposits'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -612,6 +637,7 @@ export interface RootRouteChildren {
   ApiCapabilitiesRoute: typeof ApiCapabilitiesRoute
   ApiFeesRoute: typeof ApiFeesRoute
   ApiMpesaB2cResultRoute: typeof ApiMpesaB2cResultRoute
+  ApiMpesaB2cTimeoutRoute: typeof ApiMpesaB2cTimeoutRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
   ApiMpesaStatusRoute: typeof ApiMpesaStatusRoute
   ApiMpesaStkRoute: typeof ApiMpesaStkRoute
@@ -628,6 +654,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAmlScanRoute: typeof ApiPublicAmlScanRoute
   ApiPublicCheckPriceAlertsRoute: typeof ApiPublicCheckPriceAlertsRoute
+  ApiPublicReconcileDepositsRoute: typeof ApiPublicReconcileDepositsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -842,6 +869,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMpesaB2cResultRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mpesa-b2c-timeout': {
+      id: '/api/mpesa-b2c-timeout'
+      path: '/api/mpesa-b2c-timeout'
+      fullPath: '/api/mpesa-b2c-timeout'
+      preLoaderRoute: typeof ApiMpesaB2cTimeoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mpesa-callback': {
       id: '/api/mpesa-callback'
       path: '/api/mpesa-callback'
@@ -954,6 +988,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCheckPriceAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/reconcile-deposits': {
+      id: '/api/public/reconcile-deposits'
+      path: '/api/public/reconcile-deposits'
+      fullPath: '/api/public/reconcile-deposits'
+      preLoaderRoute: typeof ApiPublicReconcileDepositsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -999,6 +1040,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCapabilitiesRoute: ApiCapabilitiesRoute,
   ApiFeesRoute: ApiFeesRoute,
   ApiMpesaB2cResultRoute: ApiMpesaB2cResultRoute,
+  ApiMpesaB2cTimeoutRoute: ApiMpesaB2cTimeoutRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
   ApiMpesaStatusRoute: ApiMpesaStatusRoute,
   ApiMpesaStkRoute: ApiMpesaStkRoute,
@@ -1015,6 +1057,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAmlScanRoute: ApiPublicAmlScanRoute,
   ApiPublicCheckPriceAlertsRoute: ApiPublicCheckPriceAlertsRoute,
+  ApiPublicReconcileDepositsRoute: ApiPublicReconcileDepositsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

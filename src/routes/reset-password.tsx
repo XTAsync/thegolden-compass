@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompassEmblem } from "@/components/CompassEmblem";
 import { ParallaxBackground } from "@/components/ParallaxBackground";
+import { validatePassword } from "@/lib/password-policy";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -59,7 +60,8 @@ function ResetPasswordPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
+    const passwordError = validatePassword(password);
+    if (passwordError) return setError(passwordError);
     if (password !== confirm) return setError("Passwords do not match.");
     setLoading(true);
     const { error: err } = await supabase.auth.updateUser({ password });

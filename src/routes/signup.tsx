@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { CompassEmblem } from "@/components/CompassEmblem";
 import { ParallaxBackground } from "@/components/ParallaxBackground";
 import { useAuth } from "@/hooks/useAuth";
+import { validatePassword } from "@/lib/password-policy";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -39,8 +40,9 @@ function SignupPage() {
       setError("All fields are required");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 

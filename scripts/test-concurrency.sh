@@ -54,4 +54,30 @@ ROWS=$(q "select count(*) from public.transactions where user_id='$U' and reques
 BAL=$(q "select wallet_balance::int from public.profiles where id='$U'")
 [ "$ROWS" = "1" ] && [ "$BAL" = "4000" ] || fail "same request id: expected 1 row and balance 4000, got $ROWS rows and balance $BAL"
 echo "ok: 8 parallel taps with one request id made one withdrawal"
+
+# 5. Audit chain under load: many users hitting money functions at once must not deadlock, and the
+#    chain must still verify afterwards, with wallet balances equal to the last audited value.
+USERS=""
+for i in 1 2 3 4 5 6; do
+  V=$(q "select gen_random_uuid()"); USERS="$USERS $V"
+  q "insert into auth.users(id,email) values ('$V','aud'||'$i'||'@test.local')" >/dev/null
+  q "insert into public.profiles(id,wallet_balance) values ('$V',2000) on conflict (id) do update set wallet_balance=2000" >/dev/null
+  q "insert into public.transactions(user_id,type,amount,status,mpesa_checkout_id) values ('$V','deposit',100,'pending','ws_CO_aud_$i')" >/dev/null
+done
+i=0
+for V in $USERS; do
+  i=$((i+1))
+  for k in 1 2 3; do
+    q "select public.confirm_deposit('ws_CO_aud_$i', 0, 'AUDRCPT$i', 100)" >/dev/null 2>&1 &
+    q "select public.request_wallet_withdrawal('$V', 100, '254712345678', gen_random_uuid())" >/dev/null 2>&1 &
+  done
+done; wait
+CH=$(q "select public.verify_ledger_chain()->>'ok'")
+WB=$(q "select public.verify_wallet_balances()->>'ok'")
+[ "$CH" = "true" ] || fail "audit chain broken after parallel load"
+[ "$WB" = "true" ] || fail "wallet balance differs from audited value after parallel load"
+for V in $USERS; do
+  q "delete from public.transactions where user_id='$V'" >/dev/null; q "delete from public.profiles where id='$V'" >/dev/null; q "delete from auth.users where id='$V'" >/dev/null
+done
+echo "ok: parallel load across 6 users, no deadlock, chain and balances verify"
 cleanup; echo "concurrency checks passed"

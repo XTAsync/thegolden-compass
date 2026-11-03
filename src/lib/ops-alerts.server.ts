@@ -33,6 +33,8 @@ export function formatOpsEvent(e: Pick<OpsEventRow, "event" | "payload" | "creat
       return `Withdrawal ${String(p.transaction_id)} (KES ${String(p.amount)}) has been processing for over ${String(p.minutes)} minutes. Check the M-Pesa statement before refunding.`;
     case "callback_rejected":
       return "A callback to the M-Pesa endpoint was rejected (bad or missing secret).";
+    case "ledger_integrity_failed":
+      return `LEDGER INTEGRITY CHECK FAILED. Pause withdrawals and investigate: ${JSON.stringify(p)}`;
     case "reconcile_attention":
       return `Reconcile run needs attention: ${JSON.stringify(p)}`;
     default:

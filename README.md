@@ -1,12 +1,8 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="thegolden-compass logo" width="180" />
+  <img src="assets/logo.svg" alt="The Golden Compass logo" width="180" />
 </p>
 
-<p align="center">
-  <img src="assets/logo.svg" alt="thegolden-compass logo" width="180" />
-</p>
-
-# Golden Compass Navigator
+# The Golden Compass
 
 A Kenya-focused investment and market-analysis platform prototype, bringing portfolio views, market information, investment workflows, and account tools into one interface.
 
